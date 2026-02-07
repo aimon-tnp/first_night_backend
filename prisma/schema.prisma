@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 1. APP CONFIG
+model AppConfig {
+  key   String @id
+  value String
+
+  @@map("app_config")
+}
+
+// 2. PROFILES
+model Profile {
+  id        String   @id @db.Uuid // Matches auth.users(id)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Personal Info
+  name      String
+  nickname  String
+  gender    String
+  birthday  DateTime? @db.Date
+  telephone String?
+  instagram String?
+
+  // Education
+  university String?
+  faculty    String?
+  uniYear    Int?    @map("uni_year")
+  email      String?
+
+  // Emergency & Medical
+  emergencyName         String? @map("emergency_name")
+  emergencyRelationship String? @map("emergency_relationship")
+  allergies             String?
+  medications           String?
+
+  // Identity
+  personality   String?
+  hobbies       String[]
+  quote         String?
+
+  // Love Languages
+  loveLangExpress String[] @map("love_lang_express")
+  loveLangReceive String?  @map("love_lang_receive")
+
+  // Preferences
+  personalityType  String? @map("personality_type")
+  agePreference    String? @map("age_preference")
+
+  // State
+  isMatched Boolean? @default(false) @map("is_matched")
+
+  // Relations
+  registrations Registration[]
+  matchAsMale   Match?         @relation("MaleMatch")
+  matchAsFemale Match?         @relation("FemaleMatch")
+
+  @@map("profiles")
+}
+
+// 3. REGISTRATIONS (Booking)
+model Registration {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId String  @map("user_id") @db.Uuid
+  user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionId String @default("feb_2026") @map("session_id")
+  status    String @default("pending") // 'pending', 'confirmed', 'refunded'
+
+  // Payment Data
+  amount       Decimal?  @db.Decimal(10, 2)
+  transferDate DateTime? @map("transfer_date") @db.Date
+  transferTime DateTime? @map("transfer_time") @db.Time
+  slipUrl      String?   @map("slip_url")
+
+  // Refund Data
+  refundBankName    String? @map("refund_bank_name")
+  refundBankNumber  String? @map("refund_bank_number")
+  refundAccountName String? @map("refund_account_name")
+
+  @@unique([userId, sessionId])
+  @@map("registrations")
+}
+
+// 4. MATCHES
+model Match {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  maleId String  @unique @map("male_id") @db.Uuid
+  male   Profile @relation("MaleMatch", fields: [maleId], references: [id])
+
+  femaleId String  @unique @map("female_id") @db.Uuid
+  female   Profile @relation("FemaleMatch", fields: [femaleId], references: [id])
+
+  compatibilityScore Float? @map("compatibility_score")
+
+  @@map("matches")
+}
