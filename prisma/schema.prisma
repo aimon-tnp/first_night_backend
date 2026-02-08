@@ -8,7 +8,30 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// 1. APP CONFIG
+enum Gender {
+  male
+  female
+}
+
+enum Personality {
+  introvert
+  extrovert
+  ambivert
+}
+
+enum AgePreference {
+  same
+  younger
+  older
+  no_preference
+}
+
+enum RegistrationStatus {
+  pending
+  confirmed
+  refunded
+}
+
 model AppConfig {
   key   String @id
   value String
@@ -16,43 +39,47 @@ model AppConfig {
   @@map("app_config")
 }
 
-// 2. PROFILES
 model Profile {
-  id        String   @id @db.Uuid // Matches auth.users(id)
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   // Personal Info
   name      String
   nickname  String
-  gender    String
-  birthday  DateTime? @db.Date
-  telephone String?
+  gender    Gender
+  birthday  DateTime @db.Date
+  telephone String
   instagram String?
 
   // Education
-  university String?
-  faculty    String?
-  uniYear    Int?    @map("uni_year")
-  email      String?
+  university String
+  faculty    String
+  uniYear    Int    @map("uni_year")
+  email      String
 
   // Emergency & Medical
   emergencyName         String? @map("emergency_name")
   emergencyRelationship String? @map("emergency_relationship")
+  emergencyTelephone    String? @map("emergency_telephone")
   allergies             String?
   medications           String?
 
   // Identity
-  personality   String?
+  personality   Personality
   hobbies       String[]
   quote         String?
+  
+  // Authentication (store salted+hashed password only)
+  username     String @unique @db.Text
+  passwordHash String @map("password_hash") @db.Text
 
   // Love Languages
   loveLangExpress String[] @map("love_lang_express")
-  loveLangReceive String?  @map("love_lang_receive")
+  loveLangReceive String  @map("love_lang_receive")
 
   // Preferences
-  personalityType  String? @map("personality_type")
-  agePreference    String? @map("age_preference")
+  personalityType  Personality @map("personality_type")
+  agePreference    AgePreference @map("age_preference")
 
   // State
   isMatched Boolean? @default(false) @map("is_matched")
@@ -65,7 +92,6 @@ model Profile {
   @@map("profiles")
 }
 
-// 3. REGISTRATIONS (Booking)
 model Registration {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
@@ -74,18 +100,18 @@ model Registration {
   user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   sessionId String @default("feb_2026") @map("session_id")
-  status    String @default("pending") // 'pending', 'confirmed', 'refunded'
+  status    RegistrationStatus @default(pending)
 
   // Payment Data
-  amount       Decimal?  @db.Decimal(10, 2)
-  transferDate DateTime? @map("transfer_date") @db.Date
-  transferTime DateTime? @map("transfer_time") @db.Time
-  slipUrl      String?   @map("slip_url")
+  amount       Decimal  @db.Decimal(10, 2)
+  transferDate DateTime @map("transfer_date") @db.Date
+  transferTime DateTime @map("transfer_time") @db.Time
+  slipUrl      String   @map("slip_url")
 
   // Refund Data
-  refundBankName    String? @map("refund_bank_name")
-  refundBankNumber  String? @map("refund_bank_number")
-  refundAccountName String? @map("refund_account_name")
+  refundBankName    String @map("refund_bank_name")
+  refundBankNumber  String @map("refund_bank_number")
+  refundAccountName String @map("refund_account_name")
 
   @@unique([userId, sessionId])
   @@map("registrations")
