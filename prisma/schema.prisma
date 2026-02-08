@@ -31,6 +31,10 @@ enum RegistrationStatus {
   confirmed
   refunded
 }
+enum Role {
+  USER
+  ADMIN
+}
 
 model AppConfig {
   key   String @id
@@ -72,27 +76,28 @@ model Profile {
   // Authentication (store salted+hashed password only)
   username     String @unique @db.Text
   passwordHash String @map("password_hash") @db.Text
+  role         Role   @default(USER)
 
   // Love Languages
   loveLangExpress String[] @map("love_lang_express")
   loveLangReceive String  @map("love_lang_receive")
 
   // Preferences
-  personalityType  Personality @map("personality_type")
+  personalityPreference  Personality @map("personality_preference")
   agePreference    AgePreference @map("age_preference")
 
   // State
   isMatched Boolean? @default(false) @map("is_matched")
 
   // Relations
-  registrations Registration[]
+  registrations Booking[]
   matchAsMale   Match?         @relation("MaleMatch")
   matchAsFemale Match?         @relation("FemaleMatch")
 
   @@map("profiles")
 }
 
-model Registration {
+model Booking {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
@@ -102,19 +107,19 @@ model Registration {
   sessionId String @default("feb_2026") @map("session_id")
   status    RegistrationStatus @default(pending)
 
-  // Payment Data
-  amount       Decimal  @db.Decimal(10, 2)
-  transferDate DateTime @map("transfer_date") @db.Date
-  transferTime DateTime @map("transfer_time") @db.Time
-  slipUrl      String   @map("slip_url")
+  // Payment Data (nullable until provided)
+  amount       Decimal?  @db.Decimal(10, 2)
+  transferDate DateTime? @map("transfer_date") @db.Date
+  transferTime DateTime? @map("transfer_time") @db.Time
+  slipUrl      String?   @map("slip_url")
 
   // Refund Data
-  refundBankName    String @map("refund_bank_name")
-  refundBankNumber  String @map("refund_bank_number")
-  refundAccountName String @map("refund_account_name")
+  refundBankName    String? @map("refund_bank_name")
+  refundBankNumber  String? @map("refund_bank_number")
+  refundAccountName String? @map("refund_account_name")
 
   @@unique([userId, sessionId])
-  @@map("registrations")
+  @@map("bookings")
 }
 
 // 4. MATCHES
