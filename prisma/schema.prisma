@@ -47,7 +47,6 @@ model Profile {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  // Personal Info
   name      String
   nickname  String
   gender    Gender
@@ -55,20 +54,17 @@ model Profile {
   telephone String
   instagram String?
 
-  // Education
   university String
   faculty    String
   uniYear    Int    @map("uni_year")
   email      String
 
-  // Emergency & Medical
   emergencyName         String? @map("emergency_name")
   emergencyRelationship String? @map("emergency_relationship")
   emergencyTelephone    String? @map("emergency_telephone")
   allergies             String?
   medications           String?
 
-  // Identity
   personality   Personality
   hobbies       String[]
   quote         String?
@@ -78,18 +74,14 @@ model Profile {
   passwordHash String @map("password_hash") @db.Text
   role         Role   @default(USER)
 
-  // Love Languages
   loveLangExpress String[] @map("love_lang_express")
   loveLangReceive String  @map("love_lang_receive")
 
-  // Preferences
   personalityPreference  Personality @map("personality_preference")
   agePreference    AgePreference @map("age_preference")
 
-  // State
   isMatched Boolean? @default(false) @map("is_matched")
 
-  // Relations
   registrations Booking[]
   matchAsMale   Match?         @relation("MaleMatch")
   matchAsFemale Match?         @relation("FemaleMatch")
