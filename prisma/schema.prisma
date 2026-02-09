@@ -77,8 +77,9 @@ model Profile {
   loveLangExpress String[] @map("love_lang_express")
   loveLangReceive String  @map("love_lang_receive")
 
-  personalityPreference  Personality @map("personality_preference")
-  agePreference    AgePreference @map("age_preference")
+  personalityPreference   Personality   @map("personality_preference")
+  agePreference           AgePreference @map("age_preference")
+  appearancePreference    String?       @map("appearance_preference")
 
   isMatched Boolean? @default(false) @map("is_matched")
 
@@ -114,7 +115,6 @@ model Booking {
   @@map("bookings")
 }
 
-// 4. MATCHES
 model Match {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
