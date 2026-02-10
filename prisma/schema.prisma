@@ -76,6 +76,7 @@ model Profile {
 
   loveLangExpress String[] @map("love_lang_express")
   loveLangReceive String  @map("love_lang_receive")
+  avatarUrl       String? @map("avatar_url")
 
   personalityPreference   Personality   @map("personality_preference")
   agePreference           AgePreference @map("age_preference")
