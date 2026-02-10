@@ -43,6 +43,8 @@ async function register(req, res, next) {
 
         if (isNaN(Date.parse(birthday))) return res.status(400).json({ error: 'Invalid birthday (expected YYYY-MM-DD)' });
 
+        if (isNaN(parseInt(uniYear, 10))) return res.status(400).json({ error: 'Invalid uniYear (expected number)' });
+
         const passwordHash = await hashPassword(password);
 
         let finalAvatarUrl = null;
@@ -142,8 +144,12 @@ async function register(req, res, next) {
             const target = err.meta ? err.meta.target : 'field';
             return res.status(409).json({ error: `User with this ${target} already exists.` });
         }
+
+        if (err.constructor.name === 'PrismaClientValidationError') {
+            console.error("Validation Error Details:", err.message);
+            return res.status(400).json({ error: 'Invalid input data' });
+        }
         
-        console.error("Register Error:", err);
         return next(err);
     }
 }
@@ -182,4 +188,41 @@ async function login(req, res, next) {
     }
 }
 
-module.exports = { register, login };
+async function logout(req, res, next) {
+    try {
+        res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' });
+        return res.json({ success: true, message: 'Logged out' });
+    } catch (err) {
+        console.error('Logout Error:', err);
+        return next(err);
+    }
+}
+
+async function getMe(req, res, next) {
+    try {
+        const username = req.user.username;
+
+        const user = await prisma.profile.findUnique({
+            where: { username },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                role: true,
+                name: true,
+                nickname: true,
+                avatarUrl: true
+            }
+        });
+
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        return res.json({ success: true, user });
+    } catch (err) {
+        console.error('Get Me Error:', err);
+        return next(err);
+    }
+    
+}
+
+module.exports = { register, login, logout, getMe };

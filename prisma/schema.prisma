@@ -57,7 +57,7 @@ model Profile {
   university String
   faculty    String
   uniYear    Int    @map("uni_year")
-  email      String
+  email      String @unique
 
   emergencyName         String? @map("emergency_name")
   emergencyRelationship String? @map("emergency_relationship")
