@@ -1,38 +1,35 @@
-const jwt = require('jsonwebtoken');
+const { verifyToken } = require('../utils/jwt');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'asdfghjkl;;lkjhgfdsa';
+/**
+ * Protect routes — requires a valid Bearer JWT in the Authorization header.
+ * On success, attaches `req.user = { id, username, role }` and calls next().
+ */
+const protect = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
 
-function authenticate(req, res, next) {
-    let token = req.headers['x-access-token'] || req.headers['authorization'];
-
-    if (!token) {
-        return res.status(401).json({ error: 'missing token' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
     }
 
-    if (token.startsWith('Bearer ')) {
-        // Remove Bearer from string
-        token = token.slice(7, token.length);
-    }
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
 
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ error: 'invalid token' });
-        }
-        req.user = {
-            id: decoded.sub,
-            role: decoded.role,
-            username: decoded.username
-        };
-        next();
-    });
-}
+    req.user = { id: decoded.id, username: decoded.username, role: decoded.role };
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
+};
 
-function requireRole(role) {
-    return (req, res, next) => {
-        if (!req.user) return res.status(401).json({ error: 'not authenticated' });
-        if (req.user.role !== role) return res.status(403).json({ error: 'forbidden' });
-        next();
-    };
-}
+/**
+ * Restrict access to ADMIN role only. Must be used after `protect`.
+ */
+const adminOnly = (req, res, next) => {
+  if (req.user?.role !== 'ADMIN') {
+    return res.status(403).json({ success: false, message: 'Forbidden: admins only' });
+  }
+  next();
+};
 
-module.exports = { authenticate, requireRole };
+module.exports = { protect, adminOnly };

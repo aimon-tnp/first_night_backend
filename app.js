@@ -2,39 +2,40 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const apiRoutes = require('./src/routes/api');
-const errorHandler = require('./src/middleware/errorHandler');
+
+const apiRouter = require('./src/routes/api');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev')); // Logging
+app.use(morgan('dev'));
 
-// Routes
-app.use('/api', apiRoutes);
+// Main API router
+app.use('/api', apiRouter);
 
-// Health Check
+// Health check
 app.get('/', (req, res) => {
-  res.send('Backend is Running');
+  res.json({ status: 'ok', message: 'First Night Backend is running' });
 });
 
-// Start Server
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Attach centralized error handler AFTER routes
-app.use(errorHandler);
-
-// Process-level handlers to log and avoid silent crashes during development
-process.on('unhandledRejection', (reason, p) => {
-  console.error('Unhandled Rejection at:', p, 'reason:', reason);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  // It's safest to exit in production, but during development we log and keep running
-});
+module.exports = app;

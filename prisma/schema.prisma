@@ -65,52 +65,73 @@ model Profile {
   allergies             String?
   medications           String?
 
-  personality   Personality
-  hobbies       String[]
-  quote         String?
-  
   // Authentication (store salted+hashed password only)
   username     String @unique @db.Text
   passwordHash String @map("password_hash") @db.Text
   role         Role   @default(USER)
 
-  loveLangExpress String[] @map("love_lang_express")
-  loveLangReceive String  @map("love_lang_receive")
-  avatarUrl       String? @map("avatar_url")
+  avatarUrl String @map("avatar_url")
 
-  personalityPreference   Personality   @map("personality_preference")
-  agePreference           AgePreference @map("age_preference")
-  appearancePreference    String?       @map("appearance_preference")
+  isMatched Boolean @default(false) @map("is_matched")
 
-  isMatched Boolean? @default(false) @map("is_matched")
+  preferences Preferences? @relation("ProfilePreferences") // needs to be nullable to allow creating profile before preferences
 
   registrations Booking[]
-  matchAsMale   Match?         @relation("MaleMatch")
+  matchAsMale   Match?         @relation("MaleMatch") // needs to be nullable to allow creating profile before matching
   matchAsFemale Match?         @relation("FemaleMatch")
 
   @@map("profiles")
 }
 
-model Booking {
+model Preferences {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  profileId String  @unique @map("profile_id") @db.Uuid
+  profile   Profile @relation("ProfilePreferences", fields: [profileId], references: [id], onDelete: Cascade)
+
+  quote         String?
+
+  personality           Personality
+  personalityPreference Personality @map("personality_preference")
+
+  agePreference AgePreference @map("age_preference")
+
+  loveLangExpress String @map("love_lang_express")
+  loveLangReceive String @map("love_lang_receive")
+
+  hobbies String[]
+
+  fashionStyle      String[] @map("fashion_style")
+  fashionPreference String[] @map("fashion_preference")
+
+  characteristics           String[] @map("characteristics")
+  characteristicPreference  String[] @map("characteristic_preference")
+
+  @@map("preferences")
+}
+
+model Booking { // TO BE REVISED - required activity pics (will this activity be present in future sessions as well?)
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   userId String  @map("user_id") @db.Uuid
   user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  sessionId String @default("feb_2026") @map("session_id")
+  sessionId String @default("feb_2026") @map("session_id") // TO BE REVISED
+  // Still not final, waiting for decision on how to collect past sessions data
   status    RegistrationStatus @default(pending)
 
   // Payment Data (nullable until provided)
-  amount       Decimal?  @db.Decimal(10, 2)
-  transferDate DateTime? @map("transfer_date") @db.Date
-  transferTime DateTime? @map("transfer_time") @db.Time
-  slipUrl      String?   @map("slip_url")
+  amount       Decimal  @db.Decimal(10, 2)
+  transferDate DateTime @map("transfer_date") @db.Date
+  transferTime DateTime @map("transfer_time") @db.Time
+  slipUrl      String   @map("slip_url") // receipt/proof of transfer image URL
 
   // Refund Data
-  refundBankName    String? @map("refund_bank_name")
-  refundBankNumber  String? @map("refund_bank_number")
-  refundAccountName String? @map("refund_account_name")
+  refundBankName    String @map("refund_bank_name")
+  refundBankNumber  String @map("refund_bank_number")
+  refundAccountName String @map("refund_account_name")
 
   @@unique([userId, sessionId])
   @@map("bookings")
