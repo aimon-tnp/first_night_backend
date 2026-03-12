@@ -108,6 +108,9 @@ model Preferences {
   characteristics           String[] @map("characteristics")
   characteristicPreference  String[] @map("characteristic_preference")
 
+  faceType           String[] @map("face_type")
+  faceTypePreference String[] @map("face_type_preference")
+
   @@map("preferences")
 }
 
