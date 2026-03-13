@@ -70,7 +70,7 @@ model Profile {
   passwordHash String @map("password_hash") @db.Text
   role         Role   @default(USER)
 
-  avatarUrl String @map("avatar_url")
+  avatarUrl String? @map("avatar_url") // needs to be nullable to allow creating profile before uploading avatar
 
   isMatched Boolean @default(false) @map("is_matched")
 

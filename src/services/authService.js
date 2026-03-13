@@ -106,6 +106,8 @@ const createPreferences = async (profileId, {
   fashionPreference = [],
   characteristics = [],
   characteristicPreference = [],
+  faceType = [],
+  faceTypePreference = [],
 }) => {
   // Ensure the profile exists and doesn't already have preferences
   const existing = await prisma.preferences.findUnique({ where: { profileId } });
@@ -129,6 +131,8 @@ const createPreferences = async (profileId, {
       fashionPreference,
       characteristics,
       characteristicPreference,
+      faceType,
+      faceTypePreference,
     },
   });
 
