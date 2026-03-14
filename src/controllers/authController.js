@@ -69,7 +69,7 @@ const registerStep1 = async (req, res, next) => {
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields, uniYear must be a number between 1 and 6',
+        message: 'Missing required fields, uniYear must be a number from 1 to 6',
         error: missingFields
       });
     }
