@@ -16,7 +16,7 @@ const registerProfile = async ({
   email,
   username,
   password,
-  // personal info (optional)
+  // personal info
   name,
   nickname,
   gender,
@@ -90,9 +90,6 @@ const registerProfile = async ({
 
 /**
  * Create a Preferences record linked to a Profile.
- * Required: profileId (from JWT), agePreference, personality, loveLangExpress, loveLangReceive
- * Optional: personalityPreference, hobbies[], fashionStyle[], fashionPreference[],
- *           characteristics[], characteristicPreference[]
  */
 const createPreferences = async (profileId, {
   agePreference,
@@ -109,6 +106,7 @@ const createPreferences = async (profileId, {
   faceType = [],
   faceTypePreference = [],
 }) => {
+  
   // Ensure the profile exists and doesn't already have preferences
   const existing = await prisma.preferences.findUnique({ where: { profileId } });
   if (existing) {
