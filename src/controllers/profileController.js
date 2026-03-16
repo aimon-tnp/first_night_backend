@@ -78,7 +78,7 @@ const getMe = async (req, res, next) => {
 // ─── PATCH /api/profile/medical-emergency ───────────────────────────────────
 // Update: emergencyName, emergencyRelationship, emergencyTelephone,
 //         allergies, medications
-const updateMedicalEmergency = async (req, res, next) => {
+const updateProfile = async (req, res, next) => {
   try {
     const {
       emergencyName,
@@ -86,6 +86,8 @@ const updateMedicalEmergency = async (req, res, next) => {
       emergencyTelephone,
       allergies,
       medications,
+      instagram,
+      telephone,
     } = req.body;
 
     const updateData = {};
@@ -95,11 +97,13 @@ const updateMedicalEmergency = async (req, res, next) => {
     if (emergencyTelephone !== undefined) updateData.emergencyTelephone = emergencyTelephone;
     if (allergies !== undefined) updateData.allergies = allergies;
     if (medications !== undefined) updateData.medications = medications;
+    if (instagram !== undefined) updateData.instagram = instagram;
+    if (telephone !== undefined) updateData.telephone = telephone; 
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'At least one field is required: emergencyName, emergencyRelationship, emergencyTelephone, allergies, medications',
+        message: 'At least one field is required',
       });
     }
 
@@ -113,6 +117,8 @@ const updateMedicalEmergency = async (req, res, next) => {
         emergencyTelephone: true,
         allergies: true,
         medications: true,
+        instagram: true,
+        telephone: true,
       },
     });
 
@@ -186,4 +192,4 @@ const updatePreferences = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadAvatarHandler, getMe, updateMedicalEmergency, updatePreferences };
+module.exports = { upload, uploadAvatarHandler, getMe, updateProfile, updatePreferences };

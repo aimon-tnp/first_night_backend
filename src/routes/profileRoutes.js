@@ -6,7 +6,7 @@ const {
 	upload,
 	uploadAvatarHandler,
 	getMe,
-	updateMedicalEmergency,
+	updateProfile,
 	updatePreferences,
 } = require('../controllers/profileController');
 
@@ -14,7 +14,7 @@ const {
 router.get('/me', protect, getMe);
 
 // PATCH /api/profile/medical-emergency
-router.patch('/medical-emergency', protect, updateMedicalEmergency);
+router.patch('/medical-emergency', protect, updateProfile);
 
 // PATCH /api/profile/preferences
 router.patch('/preferences', protect, updatePreferences);

@@ -114,15 +114,16 @@ model Preferences {
   @@map("preferences")
 }
 
-model Booking { // TO BE REVISED - required activity pics (will this activity be present in future sessions as well?)
+model Booking { 
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   userId String  @map("user_id") @db.Uuid
   user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  sessionId String @default("feb_2026") @map("session_id") // TO BE REVISED
-  // Still not final, waiting for decision on how to collect past sessions data
+  sessionId String  @map("session_id") @db.Uuid
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   status    RegistrationStatus @default(pending)
 
   // Payment Data (nullable until provided)
@@ -153,4 +154,21 @@ model Match {
   compatibilityScore Float? @map("compatibility_score")
 
   @@map("matches")
+}
+
+model Session {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  name          String
+  description   String?
+  startDateTime DateTime  @map("start_date_time") @db.Timestamptz
+  location      String
+  earlyBirdPrice Decimal   @map("early_bird_price") @db.Decimal(10, 2)
+  regularPrice   Decimal   @map("regular_price") @db.Decimal(10, 2)
+  capacity       Int
+  img_url_list   String[]  @map("img_url_list")
+
+  bookings Booking[]
+
+  @@map("sessions")
 }
