@@ -21,16 +21,12 @@ const isValidPreferenceArray = (value) => {
 
 /**
  * Create a new Profile record.
- * Required: email, username, password
- * All other profile fields are optional.
  */
 const registerProfile = async ({
-  // credentials (required)
   email,
   username,
   password,
   role,
-  // personal info
   name,
   nickname,
   gender,
@@ -65,12 +61,11 @@ const registerProfile = async ({
     throw err;
   }
 
-  // Validate personal info fields if provided
+  // Validate personal info fields
   const personalInfoFields = { name, nickname, gender, birthday, telephone, university, faculty, uniYear };
   const allFieldsProvided = Object.values(personalInfoFields).every(v => v !== undefined && v !== null);
   
   if (allFieldsProvided) {
-    // Full registration with all fields
     const requiredFields = { name, nickname, gender, birthday, telephone, university, faculty, uniYear };
     const missingFields = Object.entries(requiredFields)
       .filter(([key, value]) => {
