@@ -8,7 +8,7 @@ const {
   updateProfile,
   updatePreferences,
 } = require("../controllers/profileController");
-const { upload } = require("../middleware/upload");
+const { upload } = require("../utils/upload");
 
 router.get("/me", protect, getMe);
 

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { createSession, uploadSessionImageHandler } = require('../controllers/sessionController');
 const { protect, adminOnly } = require('../middleware/auth');
-const { upload } = require('../middleware/upload');
+const { upload } = require('../utils/upload');
 
 // POST /api/session (Admin Only)
 router.post('/', protect, adminOnly, createSession);
