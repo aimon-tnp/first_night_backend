@@ -88,6 +88,39 @@ const uploadSessionImage = async (sessionId, file) => {
     },
   });
 
+  const maxImages = 5;
+  if (updatedSession.img_url_list.length > maxImages) {
+
+    const oldestImageUrl = updatedSession.img_url_list[0];
+    const newImageList = updatedSession.img_url_list.slice(1);
+
+    // Extract path from the public URL
+    // URL format: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+    const pathMatch = oldestImageUrl.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/);
+    if (pathMatch && pathMatch[1]) {
+      const filePath = decodeURIComponent(pathMatch[1]);
+      
+      // Delete old file from storage
+      const { error: deleteError } = await supabase.storage
+        .from(SESSIONS_BUCKET)
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.warn(`Failed to delete old session image: ${deleteError.message}`);
+      } else {
+        console.log(`Deleted old session image: ${filePath}`);
+      }
+    }
+
+    // Update session with new image list
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        img_url_list: newImageList,
+      },
+    });
+  }
+
   return imageUrl;
 };
 

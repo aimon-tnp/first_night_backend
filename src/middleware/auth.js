@@ -2,7 +2,6 @@ const { verifyToken } = require('../utils/jwt');
 
 /**
  * Protect routes — requires a valid Bearer JWT in the Authorization header.
- * On success, attaches `req.user = { id, username, role }` and calls next().
  */
 const protect = (req, res, next) => {
   try {

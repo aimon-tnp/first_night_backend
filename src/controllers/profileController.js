@@ -1,18 +1,5 @@
-const multer = require('multer');
 const prisma = require('../config/db');
 const { uploadAvatar } = require('../services/storageService');
-
-// Keep file in memory — no disk writes
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
-  fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('Only image files are allowed'), false);
-    }
-    cb(null, true);
-  },
-});
 
 // ─── POST /api/profile/avatar ─────────────────────────────────────────────────
 // Expects: multipart/form-data with field name "avatar"
@@ -75,7 +62,7 @@ const getMe = async (req, res, next) => {
   }
 };
 
-// ─── PATCH /api/profile/medical-emergency ───────────────────────────────────
+// ─── PATCH /api/profile/credentials ───────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
     const {
@@ -131,7 +118,6 @@ const updateProfile = async (req, res, next) => {
 };
 
 // ─── PATCH /api/profile/preferences ─────────────────────────────────────────
-// Update all attributes in Preferences table (partial updates supported)
 const updatePreferences = async (req, res, next) => {
   try {
     const {
@@ -190,4 +176,4 @@ const updatePreferences = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadAvatarHandler, getMe, updateProfile, updatePreferences };
+module.exports = { uploadAvatarHandler, getMe, updateProfile, updatePreferences };

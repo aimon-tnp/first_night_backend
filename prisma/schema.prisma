@@ -65,7 +65,6 @@ model Profile {
   allergies             String?
   medications           String?
 
-  // Authentication (store salted+hashed password only)
   username     String @unique @db.Text
   passwordHash String @map("password_hash") @db.Text
   role         Role   @default(USER)
@@ -167,7 +166,7 @@ model Session {
   earlyBirdPrice Decimal   @map("early_bird_price") @db.Decimal(10, 2)
   regularPrice   Decimal   @map("regular_price") @db.Decimal(10, 2)
   capacity       Int
-  img_url_list   String[]  @map("img_url_list")
+  img_url_list   String[]  @map("img_url_list") // Maximum of 5 images per session
 
   bookings Booking[]
 

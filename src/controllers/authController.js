@@ -52,7 +52,7 @@ const registerAdmin = async (req, res, next) => {
 };
 
 // ─── POST /api/auth/register/step1 ───────────────────────────────────────────
-// Create profile: credentials + personal info
+// Create profile
 const registerStep1 = async (req, res, next) => {
   try {
     const {
@@ -106,7 +106,7 @@ const registerStep1 = async (req, res, next) => {
 };
 
 // ─── POST /api/auth/register/step2 ───────────────────────────────────────────
-// Create preferences — requires a valid JWT from step 1 (via protect middleware)
+// Create preferences
 const registerStep2 = async (req, res, next) => {
   try {
     const profileId = req.user.id;
@@ -171,15 +171,11 @@ const login = async (req, res, next) => {
 };
 
 // ─── POST /api/auth/logout ────────────────────────────────────────────────────
-// Stateless logout — the client is responsible for discarding the token.
-// No server-side token blacklist exists in the current schema.
 const logout = (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Logged out successfully. Please discard your token on the client.',
   });
 };
-
-module.exports = { registerAdmin, registerStep1, registerStep2, login, logout };
 
 module.exports = { registerAdmin, registerStep1, registerStep2, login, logout };
