@@ -76,8 +76,6 @@ const getMe = async (req, res, next) => {
 };
 
 // ─── PATCH /api/profile/medical-emergency ───────────────────────────────────
-// Update: emergencyName, emergencyRelationship, emergencyTelephone,
-//         allergies, medications
 const updateProfile = async (req, res, next) => {
   try {
     const {
