@@ -162,6 +162,7 @@ model Session {
   name          String
   description   String?
   startDateTime DateTime  @map("start_date_time") @db.Timestamptz
+  durationHours  Float     @map("duration_hours")
   location      String
   earlyBirdPrice Decimal   @map("early_bird_price") @db.Decimal(10, 2)
   regularPrice   Decimal   @map("regular_price") @db.Decimal(10, 2)
