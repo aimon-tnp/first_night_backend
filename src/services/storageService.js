@@ -6,9 +6,6 @@ const SESSIONS_BUCKET = 'sessions';
 
 /**
  * Upload an avatar file to Supabase Storage and save the public URL on the profile.
- * @param {string} profileId
- * @param {{ buffer: Buffer, mimetype: string, originalname: string }} file - from multer memoryStorage
- * @returns {string} public avatar URL
  */
 const uploadAvatar = async (profileId, file) => {
   const ext = file.originalname.split('.').pop().toLowerCase();
@@ -44,9 +41,6 @@ const uploadAvatar = async (profileId, file) => {
 /**
  * Upload a session image to Supabase Storage and return the public URL.
  * Appends the URL to the session's img_url_list.
- * @param {string} sessionId
- * @param {{ buffer: Buffer, mimetype: string, originalname: string }} file - from multer memoryStorage
- * @returns {string} public image URL
  */
 const uploadSessionImage = async (sessionId, file) => {
   // Verify session exists

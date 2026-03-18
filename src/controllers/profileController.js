@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const { uploadAvatar } = require('../services/storageService');
+const { updateProfileInfo, updateUserPreferences } = require('../services/profileService');
 
 // ─── POST /api/profile/avatar ─────────────────────────────────────────────────
 // Expects: multipart/form-data with field name "avatar"
@@ -65,47 +66,7 @@ const getMe = async (req, res, next) => {
 // ─── PATCH /api/profile/credentials ───────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
-    const {
-      emergencyName,
-      emergencyRelationship,
-      emergencyTelephone,
-      allergies,
-      medications,
-      instagram,
-      telephone,
-    } = req.body;
-
-    const updateData = {};
-
-    if (emergencyName !== undefined) updateData.emergencyName = emergencyName;
-    if (emergencyRelationship !== undefined) updateData.emergencyRelationship = emergencyRelationship;
-    if (emergencyTelephone !== undefined) updateData.emergencyTelephone = emergencyTelephone;
-    if (allergies !== undefined) updateData.allergies = allergies;
-    if (medications !== undefined) updateData.medications = medications;
-    if (instagram !== undefined) updateData.instagram = instagram;
-    if (telephone !== undefined) updateData.telephone = telephone; 
-
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one field is required',
-      });
-    }
-
-    const profile = await prisma.profile.update({
-      where: { id: req.user.id },
-      data: updateData,
-      select: {
-        id: true,
-        emergencyName: true,
-        emergencyRelationship: true,
-        emergencyTelephone: true,
-        allergies: true,
-        medications: true,
-        instagram: true,
-        telephone: true,
-      },
-    });
+    const profile = await updateProfileInfo(req.user.id, req.body);
 
     res.status(200).json({
       success: true,
@@ -120,45 +81,7 @@ const updateProfile = async (req, res, next) => {
 // ─── PATCH /api/profile/preferences ─────────────────────────────────────────
 const updatePreferences = async (req, res, next) => {
   try {
-    const {
-      quote,
-      personality,
-      personalityPreference,
-      agePreference,
-      loveLangExpress,
-      loveLangReceive,
-      hobbies,
-      fashionStyle,
-      fashionPreference,
-      characteristics,
-      characteristicPreference,
-    } = req.body;
-
-    const updateData = {};
-
-    if (quote !== undefined) updateData.quote = quote;
-    if (personality !== undefined) updateData.personality = personality;
-    if (personalityPreference !== undefined) updateData.personalityPreference = personalityPreference;
-    if (agePreference !== undefined) updateData.agePreference = agePreference;
-    if (loveLangExpress !== undefined) updateData.loveLangExpress = loveLangExpress;
-    if (loveLangReceive !== undefined) updateData.loveLangReceive = loveLangReceive;
-    if (hobbies !== undefined) updateData.hobbies = hobbies;
-    if (fashionStyle !== undefined) updateData.fashionStyle = fashionStyle;
-    if (fashionPreference !== undefined) updateData.fashionPreference = fashionPreference;
-    if (characteristics !== undefined) updateData.characteristics = characteristics;
-    if (characteristicPreference !== undefined) updateData.characteristicPreference = characteristicPreference;
-
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'At least one preferences field is required',
-      });
-    }
-
-    const preferences = await prisma.preferences.update({
-      where: { profileId: req.user.id },
-      data: updateData,
-    });
+    const preferences = await updateUserPreferences(req.user.id, req.body);
 
     res.status(200).json({
       success: true,
@@ -166,12 +89,6 @@ const updatePreferences = async (req, res, next) => {
       data: { preferences },
     });
   } catch (err) {
-    if (err.code === 'P2025') {
-      return res.status(404).json({
-        success: false,
-        message: 'Preferences not found for this profile',
-      });
-    }
     next(err);
   }
 };
