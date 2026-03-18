@@ -11,6 +11,63 @@ const isValidPreferenceArray = (value) => {
     && value.every((item) => typeof item === 'string' && item.trim().length > 0);
 };
 
+const registerAdmin = async (req, res, next) => {
+  try {
+    const { email, username, password } = req.body;
+
+    if (!hasNonEmptyString(email) || !hasNonEmptyString(username) || !hasNonEmptyString(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'email, username, and password are required',
+      });
+    }
+
+    const { profile, token } = await authService.registerProfile({
+      email,
+      username,
+      password,
+      role: 'ADMIN',
+      name: 'Admin',
+      nickname: 'Admin',
+      gender: 'female',
+      birthday: '2000-01-01',
+      telephone: '0000000000',
+      instagram: 'thefirstnight.bkk',
+      university: 'Chulalongkorn University',
+      faculty: 'BAScii',
+      uniYear: 2,
+      emergencyName: null,
+      emergencyRelationship: null,
+      emergencyTelephone: null,
+      allergies: null,
+      medications: null,
+    });
+
+    const preferences = await authService.createPreferences(profile.id, {
+      agePreference: 'no_preference',
+      personality: 'ambivert',
+      personalityPreference: 'ambivert',
+      loveLangExpress: '-',
+      loveLangReceive: '-',
+      quote: '-',
+      hobbies: ['-'],
+      fashionStyle: ['-'],
+      fashionPreference: ['-'],
+      characteristics: ['-'],
+      characteristicPreference: ['-'],
+      faceType: ['-'],
+      faceTypePreference: ['-'],
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin profile created.',
+      data: { profile, token, preferences },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 // ─── POST /api/auth/register/step1 ───────────────────────────────────────────
 // Create profile: credentials + personal info
 const registerStep1 = async (req, res, next) => {
@@ -223,4 +280,4 @@ const logout = (req, res) => {
   });
 };
 
-module.exports = { registerStep1, registerStep2, login, logout };
+module.exports = { registerAdmin, registerStep1, registerStep2, login, logout };

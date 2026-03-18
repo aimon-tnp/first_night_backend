@@ -16,6 +16,7 @@ const registerProfile = async ({
   email,
   username,
   password,
+  role,
   // personal info
   name,
   nickname,
@@ -54,6 +55,7 @@ const registerProfile = async ({
       email,
       username,
       passwordHash,
+      role: role || 'USER',
       name,
       nickname,
       gender,
