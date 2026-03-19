@@ -112,4 +112,22 @@ const updateSession = async (req, res, next) => {
   }
 };
 
-module.exports = { createSession, uploadSessionImageHandler, updateSession };
+const deleteSession = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+    await sessionService.deleteSession(sessionId);
+    res.status(200).json({
+      success: true,
+      message: "Session deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  createSession,
+  uploadSessionImageHandler,
+  updateSession,
+  deleteSession,
+};
