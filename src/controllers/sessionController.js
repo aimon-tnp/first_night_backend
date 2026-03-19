@@ -75,4 +75,41 @@ const uploadSessionImageHandler = async (req, res, next) => {
   }
 };
 
-module.exports = { createSession, uploadSessionImageHandler };
+const updateSession = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+    const {
+      name,
+      description,
+      startDateTime,
+      location,
+      durationHours,
+      earlyBirdPrice,
+      regularPrice,
+      capacity,
+      img_url_list,
+    } = req.body;
+
+    const updatedSession = await sessionService.updateSession(sessionId, {
+      name,
+      description,
+      startDateTime,
+      location,
+      durationHours,
+      earlyBirdPrice,
+      regularPrice,
+      capacity,
+      img_url_list,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Session updated successfully",
+      data: { session: updatedSession },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createSession, uploadSessionImageHandler, updateSession };

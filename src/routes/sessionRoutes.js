@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const { createSession, uploadSessionImageHandler } = require('../controllers/sessionController');
+const { createSession, uploadSessionImageHandler, updateSession } = require('../controllers/sessionController');
 const { protect, adminOnly } = require('../middleware/auth');
 const { upload } = require('../utils/upload');
 
-// POST /api/session (Admin Only)
 router.post('/', protect, adminOnly, createSession);
+router.post('/:sessionId/images', protect, adminOnly, upload.array('image', 5), uploadSessionImageHandler); // at most 5 images at once
 
-// POST /api/session/:sessionId/images (Admin Only)
-router.post('/:sessionId/images', protect, adminOnly, upload.array('image', 5), uploadSessionImageHandler);
+router.patch('/:sessionId', protect, adminOnly, updateSession);
 
 module.exports = router;
