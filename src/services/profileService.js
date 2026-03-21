@@ -99,4 +99,37 @@ const updateUserPreferences = async (profileId, {
   }
 };
 
-module.exports = { updateProfileInfo, updateUserPreferences };
+const deleteProfile = async (profileId) => {
+  try {
+    await prisma.profile.delete({
+      where: { id: profileId },
+    });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      const error = new Error('Profile not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    throw err;
+  }
+};
+
+const getOwnProfile = async (profileId) => {
+  const profile = await prisma.profile.findUnique({
+    where: { id: profileId },
+    include: {
+      preferences: true,
+    },
+  });
+
+  if (!profile) {
+    const err = new Error('Profile not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return profile;
+};
+
+
+module.exports = { updateProfileInfo, updateUserPreferences, deleteProfile, getOwnProfile };
