@@ -1,4 +1,3 @@
-const prisma = require('../config/db');
 const { uploadAvatar } = require('../services/storageService');
 const { updateProfileInfo, updateUserPreferences, deleteProfile, getOwnProfile } = require('../services/profileService');
 
