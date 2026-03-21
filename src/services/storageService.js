@@ -30,10 +30,19 @@ const uploadAvatar = async (profileId, file) => {
   const avatarUrl = data.publicUrl;
 
   // Persist URL on profile
-  await prisma.profile.update({
-    where: { id: profileId },
-    data: { avatarUrl },
-  });
+  try {
+    await prisma.profile.update({
+      where: { id: profileId },
+      data: { avatarUrl },
+    });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      const error = new Error('Profile not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    throw err;
+  }
 
   return avatarUrl;
 };
@@ -44,7 +53,15 @@ const uploadAvatar = async (profileId, file) => {
  */
 const uploadSessionImage = async (sessionId, file) => {
   // Verify session exists
-  const session = await prisma.session.findUnique({ where: { id: sessionId } });
+  let session;
+  try {
+    session = await prisma.session.findUnique({ where: { id: sessionId } });
+  } catch (err) {
+    const error = new Error('Database error while verifying session');
+    error.statusCode = 500;
+    throw error;
+  }
+
   if (!session) {
     const err = new Error('Session not found');
     err.statusCode = 404;
@@ -73,14 +90,24 @@ const uploadSessionImage = async (sessionId, file) => {
   const imageUrl = data.publicUrl;
 
   // Append URL to img_url_list
-  const updatedSession = await prisma.session.update({
-    where: { id: sessionId },
-    data: {
-      img_url_list: {
-        push: imageUrl,
+  let updatedSession;
+  try {
+    updatedSession = await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        img_url_list: {
+          push: imageUrl,
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      const error = new Error('Session not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    throw err;
+  }
 
   const maxImages = 5;
   if (updatedSession.img_url_list.length > maxImages) {
@@ -107,12 +134,21 @@ const uploadSessionImage = async (sessionId, file) => {
     }
 
     // Update session with new image list
-    await prisma.session.update({
-      where: { id: sessionId },
-      data: {
-        img_url_list: newImageList,
-      },
-    });
+    try {
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+          img_url_list: newImageList,
+        },
+      });
+    } catch (err) {
+      if (err.code === 'P2025') {
+        const error = new Error('Session not found');
+        error.statusCode = 404;
+        throw error;
+      }
+      throw err;
+    }
   }
 
   return imageUrl;

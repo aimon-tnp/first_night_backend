@@ -78,21 +78,30 @@ const createSession = async ({
     throw err;
   }
 
-  const session = await prisma.session.create({
-    data: {
-      name,
-      description: description || null,
-      startDateTime: startDate,
-      durationHours,
-      location,
-      earlyBirdPrice,
-      regularPrice,
-      capacity,
-      img_url_list,
-    },
-  });
+  try {
+    const session = await prisma.session.create({
+      data: {
+        name,
+        description: description || null,
+        startDateTime: startDate,
+        durationHours,
+        location,
+        earlyBirdPrice,
+        regularPrice,
+        capacity,
+        img_url_list,
+      },
+    });
 
-  return session;
+    return session;
+  } catch (err) {
+    if (err.code === 'P2002') {
+      const error = new Error('Session with this data already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+    throw err;
+  }
 };
 
 const updateSession = async (
@@ -230,8 +239,14 @@ const getSessionById = async (sessionId) => {
 };
 
 const getAllSessions = async () => {
-  const sessions = await prisma.session.findMany();
-  return sessions;
+  try {
+    const sessions = await prisma.session.findMany();
+    return sessions;
+  } catch (err) {
+    const error = new Error('Failed to retrieve sessions');
+    error.statusCode = 500;
+    throw error;
+  }
 };
 
 module.exports = { 

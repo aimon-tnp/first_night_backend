@@ -105,42 +105,51 @@ const registerProfile = async ({
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  const profile = await prisma.profile.create({
-    data: {
-      email,
-      username,
-      passwordHash,
-      role: role || 'USER',
-      name,
-      nickname,
-      gender,
-      birthday: birthday ? new Date(birthday) : undefined,
-      telephone,
-      instagram,
-      university,
-      faculty,
-      uniYear,
-      emergencyName,
-      emergencyRelationship,
-      emergencyTelephone,
-      allergies,
-      medications,
-    },
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      role: true,
-      name: true,
-      nickname: true,
-      gender: true,
-      createdAt: true,
-    },
-  });
+  try {
+    const profile = await prisma.profile.create({
+      data: {
+        email,
+        username,
+        passwordHash,
+        role: role || 'USER',
+        name,
+        nickname,
+        gender,
+        birthday: birthday ? new Date(birthday) : undefined,
+        telephone,
+        instagram,
+        university,
+        faculty,
+        uniYear,
+        emergencyName,
+        emergencyRelationship,
+        emergencyTelephone,
+        allergies,
+        medications,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        name: true,
+        nickname: true,
+        gender: true,
+        createdAt: true,
+      },
+    });
 
-  const token = signToken({ id: profile.id, username: profile.username, role: profile.role });
+    const token = signToken({ id: profile.id, username: profile.username, role: profile.role });
 
-  return { profile, token };
+    return { profile, token };
+  } catch (err) {
+    if (err.code === 'P2002') {
+      const error = new Error('Email or username already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+    throw err;
+  }
 };
 
 // ─── Step 2: Create preferences for an already-registered profile ────────────
@@ -155,13 +164,13 @@ const createPreferences = async (profileId, {
   loveLangExpress,
   loveLangReceive,
   quote,
-  hobbies = [],
-  fashionStyle = [],
-  fashionPreference = [],
-  characteristics = [],
-  characteristicPreference = [],
-  faceType = [],
-  faceTypePreference = [],
+  hobbies ,
+  fashionStyle ,
+  fashionPreference ,
+  characteristics ,
+  characteristicPreference ,
+  faceType ,
+  faceTypePreference ,
 }) => {
   // Validate required scalar fields
   const requiredScalarFields = {
@@ -206,33 +215,47 @@ const createPreferences = async (profileId, {
   }
 
   // Ensure the profile exists and doesn't already have preferences
-  const existing = await prisma.preferences.findUnique({ where: { profileId } });
-  if (existing) {
-    const err = new Error('Preferences already set for this profile');
-    err.statusCode = 409;
+  try {
+    const existing = await prisma.preferences.findUnique({ where: { profileId } });
+    if (existing) {
+      const err = new Error('Preferences already set for this profile');
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const preferences = await prisma.preferences.create({
+      data: {
+        profileId,
+        agePreference,
+        personality,
+        personalityPreference,
+        loveLangExpress,
+        loveLangReceive,
+        quote,
+        hobbies,
+        fashionStyle,
+        fashionPreference,
+        characteristics,
+        characteristicPreference,
+        faceType,
+        faceTypePreference,
+      },
+    });
+
+    return preferences;
+  } catch (err) {
+    if (err.code === 'P2002') {
+      const error = new Error('Preferences already set for this profile');
+      error.statusCode = 409;
+      throw error;
+    }
+    if (err.code === 'P2025') {
+      const error = new Error('Profile not found');
+      error.statusCode = 404;
+      throw error;
+    }
     throw err;
   }
-
-  const preferences = await prisma.preferences.create({
-    data: {
-      profileId,
-      agePreference,
-      personality,
-      personalityPreference,
-      loveLangExpress,
-      loveLangReceive,
-      quote,
-      hobbies,
-      fashionStyle,
-      fashionPreference,
-      characteristics,
-      characteristicPreference,
-      faceType,
-      faceTypePreference,
-    },
-  });
-
-  return preferences;
 };
 
 // ─── Login ────────────────────────────────────────────────────────────────────
