@@ -208,4 +208,36 @@ const deleteSession = async (sessionId) => {
   }
 };
 
-module.exports = { createSession, updateSession, deleteSession };
+const getSessionById = async (sessionId) => {
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+    if (!session) {
+      const err = new Error("Session not found");
+      err.statusCode = 404;
+      throw err;
+    }
+    return session;
+  } catch (err) {
+    if (err.code === "P2025") {
+      const notFoundErr = new Error("Session not found");
+      notFoundErr.statusCode = 404;
+      throw notFoundErr;
+    }
+    throw err;
+  }
+};
+
+const getAllSessions = async () => {
+  const sessions = await prisma.session.findMany();
+  return sessions;
+};
+
+module.exports = { 
+  createSession, 
+  updateSession, 
+  deleteSession, 
+  getSessionById, 
+  getAllSessions 
+};

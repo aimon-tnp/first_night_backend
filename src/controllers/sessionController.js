@@ -125,9 +125,38 @@ const deleteSession = async (req, res, next) => {
   }
 };
 
+const getSession = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await sessionService.getSessionById(sessionId);
+    res.status(200).json({
+      success: true,
+      message: "Session retrieved successfully",
+      data: { session },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getAllSessions = async (req, res, next) => {
+  try{
+    const sessions = await sessionService.getAllSessions();
+    res.status(200).json({
+      success: true,
+      message: "Sessions retrieved successfully",
+      data: { sessions },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createSession,
   uploadSessionImageHandler,
   updateSession,
   deleteSession,
+  getSession,
+  getAllSessions,
 };
