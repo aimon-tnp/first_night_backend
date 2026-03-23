@@ -18,10 +18,9 @@ router.post(
   "/:sessionId/images",
   protect,
   adminOnly,
-  upload.array("image", 5),
+  upload.array("image", 5),  // at most 5 images at once
   uploadSessionImageHandler,
-); // at most 5 images at once
-
+);
 router.patch("/:sessionId", protect, adminOnly, updateSession);
 
 router.delete("/:sessionId", protect, adminOnly, deleteSession);
