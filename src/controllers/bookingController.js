@@ -14,8 +14,8 @@ const createBookingHandler = async (req, res, next) => {
     const {
       sessionId,
       amount,
-      transferDate,
-      transferTime,
+      transferDate, // DD/MM/YYYY
+      transferTime, // HH:mm (24-hour)
       refundBankName,
       refundBankNumber,
       refundAccountName,

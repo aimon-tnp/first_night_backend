@@ -127,10 +127,9 @@ model Booking {
   status    RegistrationStatus @default(pending)
 
   // Payment Data (nullable until provided)
-  amount       Decimal   @db.Decimal(10, 2)
-  transferDate DateTime  @map("transfer_date") @db.Date
-  transferTime DateTime  @map("transfer_time") @db.Time
-  slipUrl      String?   @map("slip_url") // receipt/proof of transfer image URL
+  amount           Decimal   @db.Decimal(10, 2)
+  transferDateTime DateTime  @map("transfer_date_time") @db.Timestamptz
+  slipUrl          String?   @map("slip_url") // receipt/proof of transfer image URL
 
   // Refund Data
   refundBankName    String @map("refund_bank_name")

@@ -11,19 +11,65 @@ const isValidDecimal = (value) => {
   return typeof value === "number" && value > 0 && !isNaN(value);
 };
 
-const isValidDate = (value) => {
-  const date = new Date(value);
-  return date instanceof Date && !isNaN(date.getTime());
+/**
+ * Parse date string (DD/MM/YYYY) and time string (HH:MM) into a single DateTime
+ */
+const parseTransferDateTime = (dateStr, timeStr) => {
+  if (!hasNonEmptyString(dateStr) || !hasNonEmptyString(timeStr)) {
+    throw new Error("transferDate and transferTime are required");
+  }
+  
+  // Parse date
+  const dateParts = dateStr.split('/');
+  if (dateParts.length !== 3) {
+    throw new Error("transferDate must be in DD/MM/YYYY format");
+  }
+  
+  const [day, month, year] = dateParts.map(p => parseInt(p, 10));
+  
+  if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    throw new Error("transferDate must be in DD/MM/YYYY format");
+  }
+  
+  if (day < 1 || day > 31 || month < 1 || month > 12) {
+    throw new Error("Invalid date values");
+  }
+  
+  // Parse time
+  const timeParts = timeStr.split(':');
+  if (timeParts.length !== 2) {
+    throw new Error("transferTime must be in HH:MM format");
+  }
+  
+  const [hours, minutes] = timeParts.map(p => parseInt(p, 10));
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    throw new Error("transferTime must be in HH:MM format");
+  }
+  
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    throw new Error("Invalid time values (hours: 0-23, minutes: 0-59)");
+  }
+  
+  // Create combined DateTime
+  const dateTime = new Date(year, month - 1, day, hours, minutes, 0);
+  
+  // Validate that the date is valid (e.g., no Feb 30)
+  if (dateTime.getDate() !== day || dateTime.getMonth() !== month - 1 || dateTime.getFullYear() !== year) {
+    throw new Error("Invalid date");
+  }
+  
+  return dateTime;
 };
 
 // ─── Create Booking ──────────────────────────────────────────────────────────
 
 /**
  * Create a new Booking record with full validation
- * Required: userId, sessionId, amount, transferDate, transferTime, slipFile,
- *           refundBankName, refundBankNumber, refundAccountName
- * slipFile: multer file object (required)
- * Status defaults to "pending"
+ * transferDate: string in DD/MM/YYYY format
+ * transferTime: string in HH:MM format (24-hour)
+ * slipFile: multer file object
+ * status: defaults to "pending"
  */
 const createBooking = async ({
   userId,
@@ -43,11 +89,14 @@ const createBooking = async ({
     throw err;
   }
 
-  // Validate transfer dates and times
-  if (!isValidDate(transferDate) || !isValidDate(transferTime)) {
-    const err = new Error("transferDate and transferTime must be valid dates");
-    err.statusCode = 400;
-    throw err;
+  // Validate and combine transfer date and time
+  let transferDateTime;
+  try {
+    transferDateTime = parseTransferDateTime(transferDate, transferTime);
+  } catch (err) {
+    const error = new Error(err.message);
+    error.statusCode = 400;
+    throw error;
   }
 
   // Validate slipFile
@@ -103,8 +152,7 @@ const createBooking = async ({
         userId,
         sessionId,
         amount,
-        transferDate: new Date(transferDate),
-        transferTime: new Date(transferTime),
+        transferDateTime,
         refundBankName,
         refundBankNumber,
         refundAccountName,
