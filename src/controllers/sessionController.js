@@ -1,5 +1,5 @@
 const sessionService = require("../services/sessionService");
-const { uploadSessionImage } = require("../services/storageService");
+const storageService = require("../services/storageService");
 
 /**
  * POST /api/session (Admin Only)
@@ -48,7 +48,7 @@ const createSession = async (req, res, next) => {
  * Upload up to 5 images for a session and append URLs to img_url_list
  * Expects: multipart/form-data with field name "image" (can send multiple files)
  */
-const uploadSessionImageHandler = async (req, res, next) => {
+const uploadSessionImage = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
 
@@ -61,7 +61,7 @@ const uploadSessionImageHandler = async (req, res, next) => {
 
     const imageUrls = [];
     for (const file of req.files) {
-      const imageUrl = await uploadSessionImage(sessionId, file);
+      const imageUrl = await storageService.uploadSessionImage(sessionId, file);
       imageUrls.push(imageUrl);
     }
 
@@ -154,7 +154,7 @@ const getAllSessions = async (req, res, next) => {
 
 module.exports = {
   createSession,
-  uploadSessionImageHandler,
+  uploadSessionImage,
   updateSession,
   deleteSession,
   getSession,

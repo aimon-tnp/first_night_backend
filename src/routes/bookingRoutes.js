@@ -1,10 +1,11 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // Important: merge params from parent router
 
-const { createBookingHandler } = require("../controllers/bookingController");
+const { createBooking } = require("../controllers/bookingController");
 const { protect } = require("../middleware/auth");
 const { upload } = require("../utils/upload");
 
-router.post("/", protect, upload.single("slip"), createBookingHandler);
+// POST /api/sessions/:sessionId/bookings - Create booking for a session
+router.post("/", protect, upload.single("slip"), createBooking);
 
 module.exports = router;

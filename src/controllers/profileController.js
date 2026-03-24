@@ -1,15 +1,15 @@
-const { uploadAvatar } = require('../services/storageService');
-const { updateProfileInfo, updateUserPreferences, deleteProfile, getOwnProfile } = require('../services/profileService');
+const storageService = require('../services/storageService');
+const profileService = require('../services/profileService');
 
 // ─── POST /api/profile/avatar ─────────────────────────────────────────────────
 // Expects: multipart/form-data with field name "avatar"
-const uploadAvatarHandler = async (req, res, next) => {
+const uploadAvatar = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file provided. Send an image in the "avatar" field.' });
     }
 
-    const avatarUrl = await uploadAvatar(req.user.id, req.file);
+    const avatarUrl = await storageService.uploadAvatar(req.user.id, req.file);
 
     res.status(200).json({
       success: true,
@@ -24,7 +24,7 @@ const uploadAvatarHandler = async (req, res, next) => {
 // ─── GET /api/profile/me ─────────────────────────────────────────────────────
 const getMe = async (req, res, next) => {
   try {
-    const profile = await getOwnProfile(req.user.id);
+    const profile = await profileService.getOwnProfile(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -39,7 +39,7 @@ const getMe = async (req, res, next) => {
 // ─── PATCH /api/profile/credentials ───────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
-    const profile = await updateProfileInfo(req.user.id, req.body);
+    const profile = await profileService.updateProfileInfo(req.user.id, req.body);
 
     res.status(200).json({
       success: true,
@@ -54,7 +54,7 @@ const updateProfile = async (req, res, next) => {
 // ─── PATCH /api/profile/preferences ─────────────────────────────────────────
 const updatePreferences = async (req, res, next) => {
   try {
-    const preferences = await updateUserPreferences(req.user.id, req.body);
+    const preferences = await profileService.updateUserPreferences(req.user.id, req.body);
 
     res.status(200).json({
       success: true,
@@ -66,18 +66,18 @@ const updatePreferences = async (req, res, next) => {
   }
 };
 
-const deleteProfileHandler = async (req, res, next) => {
+const deleteProfile = async (req, res, next) => {
   try {
     if (req.user.role === 'ADMIN') {
       const { profileId } = req.params;
-      const deletedProfile = await deleteProfile(profileId);
+      const deletedProfile = await profileService.deleteProfile(profileId);
       res.status(200).json({
         success: true,
         message: 'Profile deleted successfully',
         data: { profile: deletedProfile },
       });
     } else if (req.user.role === 'USER') {
-      const deletedProfile = await deleteProfile(req.user.id);
+      const deletedProfile = await profileService.deleteProfile(req.user.id);
       res.status(200).json({
         success: true,
         message: 'Your profile has been deleted',
@@ -91,4 +91,4 @@ const deleteProfileHandler = async (req, res, next) => {
   }
 };
 
-module.exports = { uploadAvatarHandler, getMe, updateProfile, updatePreferences, deleteProfileHandler };
+module.exports = { uploadAvatar, getMe, updateProfile, updatePreferences, deleteProfile };

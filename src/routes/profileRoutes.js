@@ -3,11 +3,11 @@ const router = express.Router();
 
 const { protect } = require("../middleware/auth");
 const {
-  uploadAvatarHandler,
+  uploadAvatar,
   getMe,
   updateProfile,
   updatePreferences,
-  deleteProfileHandler,
+  deleteProfile,
 } = require("../controllers/profileController");
 
 const { upload } = require("../utils/upload");
@@ -17,9 +17,9 @@ router.get("/me", protect, getMe);
 router.patch("/credentials", protect, updateProfile);
 router.patch("/preferences", protect, updatePreferences);
 
-router.post("/avatar", protect, upload.single("avatar"), uploadAvatarHandler);
+router.post("/avatar", protect, upload.single("avatar"), uploadAvatar);
 
-router.delete("/", protect, deleteProfileHandler);
-router.delete("/:profileId", protect, deleteProfileHandler);
+router.delete("/", protect, deleteProfile);
+router.delete("/:profileId", protect, deleteProfile);
 
 module.exports = router;
