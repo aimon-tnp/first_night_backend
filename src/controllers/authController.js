@@ -1,4 +1,5 @@
 const authService = require('../services/authService');
+const { verifyToken } = require('../utils/jwt');
 
 const registerAdmin = async (req, res, next) => {
   try {
@@ -171,11 +172,20 @@ const login = async (req, res, next) => {
 };
 
 // ─── POST /api/auth/logout ────────────────────────────────────────────────────
-const logout = (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Logged out successfully. Please discard your token on the client.',
-  });
+const logout = async (req, res, next) => {
+  try {
+    const token = req.token;
+
+    await authService.logout(token, verifyToken);
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+      data: null,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = { registerAdmin, registerStep1, registerStep2, login, logout };

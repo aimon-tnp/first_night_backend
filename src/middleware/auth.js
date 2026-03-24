@@ -1,9 +1,7 @@
 const { verifyToken } = require('../utils/jwt');
+const redisClient = require('../config/redis');
 
-/**
- * Protect routes — requires a valid Bearer JWT in the Authorization header.
- */
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -14,7 +12,19 @@ const protect = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
 
+    // Check if token is blacklisted
+    try {
+      const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+
+      if (isBlacklisted) {
+        return res.status(401).json({ success: false, message: 'Token has been revoked' });
+      }
+    } catch (redisErr) {
+      console.error('Redis error:', redisErr); // don't throw
+    }
+
     req.user = { id: decoded.id, username: decoded.username, role: decoded.role };
+    req.token = token;
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });

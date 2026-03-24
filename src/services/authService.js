@@ -306,4 +306,31 @@ const login = async ({ username, password }) => {
   return { profile: safeProfile, token };
 };
 
-module.exports = { registerProfile, createPreferences, login };
+// ─── Logout ───────────────────────────────────────────────────────────────────
+
+const logout = async (token, verifyTokenFn) => {
+  // Verify token to get expiration time
+  try {
+    const decoded = verifyTokenFn(token);
+    
+    // Calculate remaining TTL (time until token expires)
+    const now = Math.floor(Date.now() / 1000);
+    const ttl = decoded.exp - now;
+
+    // Add token to blacklist with TTL (will expire automatically)
+    if (ttl > 0) {
+      const redisClient = require('../config/redis');
+      try {
+        await redisClient.setEx(`blacklist:${token}`, ttl, 'true');
+      } catch (redisErr) {
+        console.error('Redis error during logout:', redisErr);
+        // Don't fail logout if Redis fails, but log it
+      }
+    }
+  } catch (err) {
+    // Token is invalid/expired, but still allow logout
+    console.error('Token verification error during logout:', err);
+  }
+};
+
+module.exports = { registerProfile, createPreferences, login, logout };
