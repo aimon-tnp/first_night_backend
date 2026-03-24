@@ -21,6 +21,11 @@ npm install
 - `DATABASE_URL` (pgbouncer / pooler URL for Prisma)
 - `DIRECT_URL` (direct DB URL for schema changes)
 - `SUPABASE_URL` and `SUPABASE_KEY` (optional)
+- `REDIS_HOST` (optional, defaults to localhost)
+- `REDIS_PORT` (optional, defaults to 6379)
+- `REDIS_PASSWORD` (optional)
+- `REDIS_DB` (optional, defaults to 0)
+- `REDIS_TLS` (optional, set to 'true' for TLS connection)
 
 ## Database
 
@@ -36,6 +41,25 @@ npx prisma db push
 # Or use migrations
 npx prisma migrate dev --name <description>
 ```
+
+## Redis
+
+Redis is used for token blacklisting on logout. Ensure Redis is running before starting the server.
+
+**Start Redis (if not running):**
+```bash
+redis-server
+# Or on macOS with Homebrew:
+brew services start redis
+```
+
+**Check Redis connection:**
+```bash
+redis-cli
+ping  # Should return PONG
+```
+
+Redis configuration is loaded from environment variables or defaults to `localhost:6379`.
 
 ## Running
 
