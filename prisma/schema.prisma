@@ -122,15 +122,15 @@ model Booking {
   user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   sessionId String  @map("session_id") @db.Uuid
-  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session   Session @relation(fields: [sessionId], references: [id])
 
   status    RegistrationStatus @default(pending)
 
   // Payment Data (nullable until provided)
-  amount       Decimal  @db.Decimal(10, 2)
-  transferDate DateTime @map("transfer_date") @db.Date
-  transferTime DateTime @map("transfer_time") @db.Time
-  slipUrl      String   @map("slip_url") // receipt/proof of transfer image URL
+  amount       Decimal   @db.Decimal(10, 2)
+  transferDate DateTime  @map("transfer_date") @db.Date
+  transferTime DateTime  @map("transfer_time") @db.Time
+  slipUrl      String?   @map("slip_url") // receipt/proof of transfer image URL
 
   // Refund Data
   refundBankName    String @map("refund_bank_name")

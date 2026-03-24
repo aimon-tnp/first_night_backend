@@ -3,6 +3,7 @@ const prisma = require('../config/db');
 
 const AVATARS_BUCKET = 'avatars';
 const SESSIONS_BUCKET = 'sessions';
+const BOOKING_SLIPS_BUCKET = 'booking-slips';
 
 /**
  * Upload an avatar file to Supabase Storage and save the public URL on the profile.
@@ -154,4 +155,38 @@ const uploadSessionImage = async (sessionId, file) => {
   return imageUrl;
 };
 
-module.exports = { uploadAvatar, uploadSessionImage };
+/**
+ * Upload a booking slip file to Supabase Storage and return the public URL.
+ */
+const uploadBookingSlip = async (bookingId, file) => {
+  if (!file) {
+    const err = new Error('File is required');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const ext = file.originalname.split('.').pop().toLowerCase();
+  const timestamp = Date.now();
+  const path = `${bookingId}/${timestamp}.${ext}`;
+
+  // Upload to booking-slips bucket
+  const { error: uploadError } = await supabase.storage
+    .from(BOOKING_SLIPS_BUCKET)
+    .upload(path, file.buffer, {
+      contentType: file.mimetype,
+    });
+
+  if (uploadError) {
+    const err = new Error(`Storage upload failed: ${uploadError.message}`);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  // Get public URL
+  const { data } = supabase.storage.from(BOOKING_SLIPS_BUCKET).getPublicUrl(path);
+  const slipUrl = data.publicUrl;
+
+  return slipUrl;
+};
+
+module.exports = { uploadAvatar, uploadSessionImage, uploadBookingSlip };
