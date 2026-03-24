@@ -18,47 +18,51 @@ const parseTransferDateTime = (dateStr, timeStr) => {
   if (!hasNonEmptyString(dateStr) || !hasNonEmptyString(timeStr)) {
     throw new Error("transferDate and transferTime are required");
   }
-  
+
   // Parse date
-  const dateParts = dateStr.split('/');
+  const dateParts = dateStr.split("/");
   if (dateParts.length !== 3) {
     throw new Error("transferDate must be in DD/MM/YYYY format");
   }
-  
-  const [day, month, year] = dateParts.map(p => parseInt(p, 10));
-  
+
+  const [day, month, year] = dateParts.map((p) => parseInt(p, 10));
+
   if (isNaN(day) || isNaN(month) || isNaN(year)) {
     throw new Error("transferDate must be in DD/MM/YYYY format");
   }
-  
+
   if (day < 1 || day > 31 || month < 1 || month > 12) {
     throw new Error("Invalid date values");
   }
-  
+
   // Parse time
-  const timeParts = timeStr.split(':');
+  const timeParts = timeStr.split(":");
   if (timeParts.length !== 2) {
     throw new Error("transferTime must be in HH:MM format");
   }
-  
-  const [hours, minutes] = timeParts.map(p => parseInt(p, 10));
-  
+
+  const [hours, minutes] = timeParts.map((p) => parseInt(p, 10));
+
   if (isNaN(hours) || isNaN(minutes)) {
     throw new Error("transferTime must be in HH:MM format");
   }
-  
+
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
     throw new Error("Invalid time values (hours: 0-23, minutes: 0-59)");
   }
-  
+
   // Create combined DateTime
   const dateTime = new Date(year, month - 1, day, hours, minutes, 0);
-  
+
   // Validate that the date is valid (e.g., no Feb 30)
-  if (dateTime.getDate() !== day || dateTime.getMonth() !== month - 1 || dateTime.getFullYear() !== year) {
+  if (
+    dateTime.getDate() !== day ||
+    dateTime.getMonth() !== month - 1 ||
+    dateTime.getFullYear() !== year
+  ) {
     throw new Error("Invalid date");
   }
-  
+
   return dateTime;
 };
 
@@ -161,7 +165,7 @@ const createBooking = async ({
 
     // Upload slip file and update booking with URL
     const slipUrl = await uploadBookingSlip(booking.id, slipFile);
-    
+
     const updatedBooking = await prisma.booking.update({
       where: { id: booking.id },
       data: { slipUrl },
