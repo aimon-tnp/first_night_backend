@@ -62,4 +62,22 @@ const createBooking = async (req, res, next) => {
   }
 };
 
-module.exports = { createBooking };
+const updateBookingStatus = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    const { status } = req.body;
+
+    const updatedBooking = await bookingService.updateBookingStatus(bookingId, status);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking status updated successfully",
+      data: { booking: updatedBooking },
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createBooking, updateBookingStatus };

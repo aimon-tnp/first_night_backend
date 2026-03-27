@@ -130,16 +130,6 @@ const createBooking = async ({
   }
 
   try {
-    // Verify user exists
-    const user = await prisma.profile.findUnique({
-      where: { id: userId },
-    });
-    if (!user) {
-      const err = new Error("User not found");
-      err.statusCode = 404;
-      throw err;
-    }
-
     // Verify session exists
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
@@ -193,4 +183,32 @@ const createBooking = async ({
   }
 };
 
-module.exports = { createBooking };
+const updateBookingStatus = async (bookingId, newStatus) => {
+  const validStatuses = ["pending", "confirmed", "rejected", "refunded"];
+  if (!validStatuses.includes(newStatus)) {
+    const err = new Error(`Invalid status. Valid statuses are: ${validStatuses.join(", ")}`);
+    err.statusCode = 400;
+    throw err;
+  }
+
+  try {
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: newStatus },
+    });
+    return updatedBooking;
+  } catch (err) {
+    if (err.code === "P2025") {
+      const error = new Error("Booking not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const error = new Error("Failed to update booking status");
+    error.statusCode = 500;
+    error.originalError = err;
+    throw error;
+  }
+};
+
+module.exports = { createBooking, updateBookingStatus };

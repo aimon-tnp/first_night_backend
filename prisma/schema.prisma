@@ -29,6 +29,7 @@ enum AgePreference {
 enum RegistrationStatus {
   pending
   confirmed
+  rejected
   refunded
 }
 
