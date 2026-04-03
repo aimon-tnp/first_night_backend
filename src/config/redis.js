@@ -1,9 +1,9 @@
 const redis = require('redis');
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = process.env.REDIS_PORT || 6379;
+const REDIS_PORT = parseInt(process.env.REDIS_PORT || 6379, 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
-const REDIS_DB = process.env.REDIS_DB || 0;
+const REDIS_DB = parseInt(process.env.REDIS_DB || 0, 10);
 const REDIS_TLS = process.env.REDIS_TLS === 'true';
 
 // Create Redis client (v4+ with promises)
@@ -11,7 +11,7 @@ const client = redis.createClient({
   socket: {
     host: REDIS_HOST,
     port: REDIS_PORT,
-    tls: REDIS_TLS,
+    tls: REDIS_TLS ? {} : false,
   },
   password: REDIS_PASSWORD || undefined,
   db: REDIS_DB,
