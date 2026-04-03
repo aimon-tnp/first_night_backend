@@ -95,11 +95,6 @@ const createSession = async ({
 
     return session;
   } catch (err) {
-    if (err.code === 'P2002') {
-      const error = new Error('Session with this data already exists');
-      error.statusCode = 409;
-      throw error;
-    }
     throw err;
   }
 };
@@ -218,24 +213,15 @@ const deleteSession = async (sessionId) => {
 };
 
 const getSessionById = async (sessionId) => {
-  try {
-    const session = await prisma.session.findUnique({
-      where: { id: sessionId },
-    });
-    if (!session) {
-      const err = new Error("Session not found");
-      err.statusCode = 404;
-      throw err;
-    }
-    return session;
-  } catch (err) {
-    if (err.code === "P2025") {
-      const notFoundErr = new Error("Session not found");
-      notFoundErr.statusCode = 404;
-      throw notFoundErr;
-    }
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+  });
+  if (!session) {
+    const err = new Error("Session not found");
+    err.statusCode = 404;
     throw err;
   }
+  return session;
 };
 
 const getAllSessions = async () => {

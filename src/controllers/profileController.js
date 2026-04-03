@@ -83,8 +83,6 @@ const deleteProfile = async (req, res, next) => {
         message: 'Your profile has been deleted',
         data: { profile: deletedProfile },
       });
-    } else {
-      res.status(403).json({ success: false, message: 'Unauthorized' });
     }
   } catch (err) {
     next(err);
