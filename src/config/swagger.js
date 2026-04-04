@@ -17,7 +17,7 @@ const options = {
         description: 'Development server',
       },
       {
-        url: process.env.API_URL || 'https://api.firstnight.com',
+        url: process.env.API_URL || 'https://first-night-backend.onrender.com',
         description: 'Production server',
       },
     ],
