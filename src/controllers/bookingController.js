@@ -80,4 +80,25 @@ const updateBookingStatus = async (req, res, next) => {
   }
 };
 
-module.exports = { createBooking, updateBookingStatus };
+// ─── GET /api/sessions/:sessionId/bookings ──────────────────────────────────
+// Admin only: Get all bookings for a specific session
+const getSessionBookings = async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+
+    const bookings = await bookingService.getSessionBookings(sessionId);
+
+    res.status(200).json({
+      success: true,
+      message: "Session bookings fetched successfully",
+      data: {
+        total: bookings.length,
+        bookings,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createBooking, updateBookingStatus, getSessionBookings };

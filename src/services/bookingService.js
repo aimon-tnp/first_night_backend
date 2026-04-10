@@ -211,4 +211,49 @@ const updateBookingStatus = async (bookingId, newStatus) => {
   }
 };
 
-module.exports = { createBooking, updateBookingStatus };
+const getSessionBookings = async (sessionId) => {
+  try {
+    // Verify session exists
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+    });
+    if (!session) {
+      const err = new Error("Session not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // Fetch all bookings for the session with user details
+    const bookings = await prisma.booking.findMany({
+      where: { sessionId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            telephone: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return bookings;
+  } catch (err) {
+    // Re-throw known errors with status codes
+    if (err.statusCode) {
+      throw err;
+    }
+
+    // Handle unexpected database errors
+    const error = new Error("Failed to fetch session bookings");
+    error.statusCode = 500;
+    error.originalError = err;
+    throw error;
+  }
+};
+
+module.exports = { createBooking, updateBookingStatus, getSessionBookings };

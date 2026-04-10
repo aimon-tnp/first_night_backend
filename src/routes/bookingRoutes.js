@@ -1,11 +1,40 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true }); // Important: merge params from parent router
 
-const { createBooking, updateBookingStatus } = require("../controllers/bookingController");
+const { createBooking, updateBookingStatus, getSessionBookings } = require("../controllers/bookingController");
 const { protect, adminOnly } = require("../middleware/auth");
 const { upload } = require("../utils/upload");
 
 /**
+ * @swagger
+ * /api/sessions/{sessionId}/bookings:
+ *   get:
+ *     summary: Get all bookings for a session (Admin only)
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Session bookings fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin only
+ *       404:
+ *         description: Session not found
+ *       500:
+ *         description: Failed to fetch session bookings
+ */
+router.get("/", protect, adminOnly, getSessionBookings);
+
+/*
  * @swagger
  * /api/sessions/{sessionId}/bookings:
  *   post:
