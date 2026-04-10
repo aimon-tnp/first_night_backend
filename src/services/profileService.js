@@ -191,7 +191,7 @@ const deleteProfile = async (profileId) => {
   }
 };
 
-const getOwnProfile = async (profileId) => {
+const getProfile = async (profileId) => {
   try {
     const profile = await prisma.profile.findUnique({
       where: { id: profileId },
@@ -217,5 +217,4 @@ const getOwnProfile = async (profileId) => {
   }
 };
 
-
-module.exports = { updateProfileInfo, updateUserPreferences, deleteProfile, getOwnProfile };
+module.exports = { updateProfileInfo, updateUserPreferences, deleteProfile, getProfile };

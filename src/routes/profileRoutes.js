@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const { protect } = require("../middleware/auth");
+const { protect, adminOnly } = require("../middleware/auth");
 const {
   uploadAvatar,
   getMe,
   updateProfile,
   updatePreferences,
   deleteProfile,
+  getOtherUserProfile,
 } = require("../controllers/profileController");
 
 const { upload } = require("../utils/upload");
@@ -178,6 +179,42 @@ router.delete("/", protect, deleteProfile);
 /**
  * @swagger
  * /api/profiles/{profileId}:
+ *   get:
+ *     summary: Get user profile by ID (Admin only)
+ *     tags: [Profiles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Profile'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin only
+ *       404:
+ *         description: Profile not found
+ */
+router.get("/:profileId", protect, adminOnly, getOtherUserProfile);
+
+/**
+ * @swagger
+ * /api/profiles/{profileId}:
  *   delete:
  *     summary: Delete user profile by ID (Admin only)
  *     tags: [Profiles]
@@ -198,6 +235,6 @@ router.delete("/", protect, deleteProfile);
  *       404:
  *        description: Profile not found
  */
-router.delete("/:profileId", protect, deleteProfile);
+router.delete("/:profileId", protect, adminOnly, deleteProfile);
 
 module.exports = router;

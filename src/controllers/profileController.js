@@ -22,9 +22,10 @@ const uploadAvatar = async (req, res, next) => {
 };
 
 // ─── GET /api/profile/me ─────────────────────────────────────────────────────
+// Get current user's own profile
 const getMe = async (req, res, next) => {
   try {
-    const profile = await profileService.getOwnProfile(req.user.id);
+    const profile = await profileService.getProfile(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -89,4 +90,22 @@ const deleteProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { uploadAvatar, getMe, updateProfile, updatePreferences, deleteProfile };
+// ─── GET /api/profiles/:profileId ────────────────────────────────────────────
+// Admin only: Get another user's profile data
+const getOtherUserProfile = async (req, res, next) => {
+  try {
+    const { profileId } = req.params;
+
+    const profile = await profileService.getProfile(profileId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile retrieved successfully',
+      data: { profile },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { uploadAvatar, getMe, updateProfile, updatePreferences, deleteProfile, getOtherUserProfile };
