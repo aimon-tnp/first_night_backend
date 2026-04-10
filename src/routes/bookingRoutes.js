@@ -34,7 +34,7 @@ const { upload } = require("../utils/upload");
  */
 router.get("/", protect, adminOnly, getSessionBookings);
 
-/*
+/** 
  * @swagger
  * /api/sessions/{sessionId}/bookings:
  *   post:
