@@ -38,13 +38,6 @@ enum Role {
   ADMIN
 }
 
-model AppConfig {
-  key   String @id
-  value String
-
-  @@map("app_config")
-}
-
 model Profile {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
@@ -72,8 +65,6 @@ model Profile {
   role         Role   @default(USER)
 
   avatarUrl String? @map("avatar_url") // needs to be nullable to allow creating profile before uploading avatar
-
-  isMatched Boolean @default(false) @map("is_matched")
 
   preferences Preferences? @relation("ProfilePreferences") // needs to be nullable to allow creating profile before preferences
 

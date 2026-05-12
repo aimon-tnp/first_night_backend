@@ -13,6 +13,7 @@ const {
 const { protect, adminOnly } = require("../middleware/auth");
 const { upload } = require("../utils/upload");
 const bookingRoutes = require("./bookingRoutes");
+const matchRoutes = require("./matchRoutes");
 
 /**
  * @swagger
@@ -276,5 +277,8 @@ router.post(
 
 // Nested: /api/sessions/:sessionId/bookings
 router.use("/:sessionId/bookings", bookingRoutes);
+
+// Nested: /api/sessions/:sessionId/matches
+router.use("/:sessionId/matches", matchRoutes);
 
 module.exports = router;
