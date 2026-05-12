@@ -20,9 +20,25 @@ const { upload } = require("../utils/upload");
  *         schema:
  *           type: string
  *           format: uuid
+ *       - in: query
+ *         name: gender
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [male, female]
+ *         description: Filter bookings by user gender
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [pending, confirmed, rejected, refunded]
+ *         description: Filter bookings by registration status
  *     responses:
  *       200:
  *         description: Session bookings fetched successfully
+ *       400:
+ *         description: Invalid filter values
  *       401:
  *         description: Unauthorized
  *       403:

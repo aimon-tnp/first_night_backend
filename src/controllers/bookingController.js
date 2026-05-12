@@ -82,11 +82,36 @@ const updateBookingStatus = async (req, res, next) => {
 
 // ─── GET /api/sessions/:sessionId/bookings ──────────────────────────────────
 // Admin only: Get all bookings for a specific session
+// Optional query params: gender (male|female), status (pending|confirmed|rejected|refunded)
 const getSessionBookings = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
+    let { gender, status } = req.query;
 
-    const bookings = await bookingService.getSessionBookings(sessionId);
+    // Validate gender filter if provided
+    if (gender) {
+      gender = gender.toLowerCase();
+      if (!['male', 'female'].includes(gender)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid gender filter. Valid values: male, female',
+        });
+      }
+    }
+
+    // Validate status filter if provided
+    if (status) {
+      status = status.toLowerCase();
+      const validStatuses = ['pending', 'confirmed', 'rejected', 'refunded'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status filter. Valid values: ${validStatuses.join(', ')}`,
+        });
+      }
+    }
+
+    const bookings = await bookingService.getSessionBookings(sessionId, gender, status);
 
     res.status(200).json({
       success: true,

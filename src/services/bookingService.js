@@ -211,7 +211,7 @@ const updateBookingStatus = async (bookingId, newStatus) => {
   }
 };
 
-const getSessionBookings = async (sessionId) => {
+const getSessionBookings = async (sessionId, gender, status) => {
   try {
     // Verify session exists
     const session = await prisma.session.findUnique({
@@ -223,15 +223,26 @@ const getSessionBookings = async (sessionId) => {
       throw err;
     }
 
+    // Build where clause with optional filters
+    const where = {
+      sessionId,
+    };
+
+    // Add status filter if provided
+    if (status) {
+      where.status = status;
+    }
+
     // Fetch all bookings for the session with user details
-    const bookings = await prisma.booking.findMany({
-      where: { sessionId },
+    let bookings = await prisma.booking.findMany({
+      where,
       include: {
         user: {
           select: {
             id: true,
             username: true,
             name: true,
+            gender: true,
             email: true,
             telephone: true,
             avatarUrl: true,
@@ -240,6 +251,11 @@ const getSessionBookings = async (sessionId) => {
       },
       orderBy: { createdAt: "desc" },
     });
+
+    // Apply gender filter in application code if provided
+    if (gender) {
+      bookings = bookings.filter(booking => booking.user.gender.toLowerCase() === gender.toLowerCase());
+    }
 
     return bookings;
   } catch (err) {
