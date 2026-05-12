@@ -380,6 +380,7 @@ const options = {
     './src/routes/profileRoutes.js',
     './src/routes/sessionRoutes.js',
     './src/routes/bookingRoutes.js',
+    './src/routes/matchRoutes.js',
   ],
 };
 
