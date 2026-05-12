@@ -145,14 +145,22 @@ model Match {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  maleId String  @unique @map("male_id") @db.Uuid
+  sessionId String  @map("session_id") @db.Uuid
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  matchNumber Int @map("match_number") // Sequential number per session (70, 71, 72, ...)
+
+  maleId String @unique @map("male_id") @db.Uuid
   male   Profile @relation("MaleMatch", fields: [maleId], references: [id])
 
-  femaleId String  @unique @map("female_id") @db.Uuid
+  femaleId String @unique @map("female_id") @db.Uuid
   female   Profile @relation("FemaleMatch", fields: [femaleId], references: [id])
 
   compatibilityScore Float? @map("compatibility_score")
 
+  @@unique([sessionId, matchNumber])
+  @@unique([sessionId, maleId])
+  @@unique([sessionId, femaleId])
   @@map("matches")
 }
 
@@ -170,6 +178,7 @@ model Session {
   img_url_list   String[]  @map("img_url_list") // Maximum of 5 images per session
 
   bookings Booking[]
+  matches  Match[]
 
   @@map("sessions")
 }
