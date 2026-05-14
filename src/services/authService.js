@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/db');
 const { signToken } = require('../utils/jwt');
+const { uploadAvatar } = require('./storageService');
 
 const SALT_ROUNDS = 12;
 
@@ -333,4 +334,101 @@ const logout = async (token, verifyTokenFn) => {
   }
 };
 
-module.exports = { registerProfile, createPreferences, login, logout };
+// ─── Step 1 with Avatar: Register profile + upload avatar in one step ────────
+
+/**
+ * Create a new Profile record with avatar upload in a single transaction-like operation.
+ * If avatar upload fails, the profile is rolled back (deleted).
+ * Token is issued only after both profile creation and avatar upload succeed.
+ */
+const registerProfileWithAvatar = async ({
+  email,
+  username,
+  password,
+  role,
+  name,
+  nickname,
+  gender,
+  birthday,
+  telephone,
+  instagram,
+  university,
+  faculty,
+  uniYear,
+  emergencyName,
+  emergencyRelationship,
+  emergencyTelephone,
+  allergies,
+  medications,
+  avatarFile, // multer file object: { buffer, mimetype, originalname }
+}) => {
+  // Validate avatar file is provided
+  if (!avatarFile) {
+    const err = new Error('Avatar image file is required');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Create profile without avatar (will be set after upload succeeds)
+  let profile;
+  try {
+    profile = await prisma.profile.create({
+      data: {
+        email,
+        username,
+        passwordHash: await bcrypt.hash(password, SALT_ROUNDS),
+        role: role || 'USER',
+        name,
+        nickname,
+        gender,
+        birthday: birthday ? new Date(birthday) : undefined,
+        telephone,
+        instagram,
+        university,
+        faculty,
+        uniYear: uniYear ? Number(uniYear) : undefined,
+        emergencyName,
+        emergencyRelationship,
+        emergencyTelephone,
+        allergies,
+        medications,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        name: true,
+        nickname: true,
+        gender: true,
+        createdAt: true,
+      },
+    });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      const error = new Error('Email or username already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+    throw err;
+  }
+
+  // Upload avatar to Supabase
+  try {
+    await uploadAvatar(profile.id, avatarFile);
+  } catch (uploadErr) {
+    // Rollback: delete the profile if avatar upload fails
+    try {
+      await prisma.profile.delete({ where: { id: profile.id } });
+    } catch (deleteErr) {
+      console.error('Failed to rollback profile after avatar upload error:', deleteErr);
+    }
+    throw uploadErr; // Re-throw the upload error
+  }
+
+  // Both succeeded: issue token and return
+  const token = signToken({ id: profile.id, username: profile.username, role: profile.role });
+  return { profile, token };
+};
+
+module.exports = { registerProfile, createPreferences, login, logout, registerProfileWithAvatar };

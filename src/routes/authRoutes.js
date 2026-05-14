@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { registerAdmin, registerStep1, registerStep2, login, logout } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const { upload } = require('../utils/upload');
 
 /**
  * @swagger
@@ -52,15 +53,15 @@ router.post('/register/admin', registerAdmin);
  * @swagger
  * /api/auth/register/step1:
  *   post:
- *     summary: Register step 1 - Create profile
+ *     summary: Register step 1 - Create profile with avatar
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required: [email, username, password, name, nickname, gender, birthday, telephone, university, faculty, uniYear]
+ *             required: [email, username, password, name, nickname, gender, birthday, telephone, university, faculty, uniYear, avatar]
  *             properties:
  *               email:
  *                 type: string
@@ -100,13 +101,17 @@ router.post('/register/admin', registerAdmin);
  *                 type: string
  *               medications:
  *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: Avatar image file (required)
  *     responses:
  *       201:
- *         description: Profile created. Proceed to step 2 to set preferences
+ *         description: Profile created with avatar. Proceed to step 2 to set preferences
  *       400:
- *         description: Invalid input or email/username already exists
+ *         description: Invalid input, missing avatar, or email/username already exists
  */
-router.post('/register/step1', registerStep1);
+router.post('/register/step1', upload.single('avatar'), registerStep1);
 
 /**
  * @swagger

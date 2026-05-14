@@ -53,9 +53,16 @@ const registerAdmin = async (req, res, next) => {
 };
 
 // ─── POST /api/auth/register/step1 ───────────────────────────────────────────
-// Create profile
+// Create profile with avatar
 const registerStep1 = async (req, res, next) => {
   try {
+    // Validate file was uploaded
+    if (!req.file) {
+      const err = new Error('Avatar image file is required');
+      err.statusCode = 400;
+      throw err;
+    }
+
     const {
       email,
       username,
@@ -76,7 +83,7 @@ const registerStep1 = async (req, res, next) => {
       medications,
     } = req.body;
 
-    const { profile, token } = await authService.registerProfile({
+    const { profile, token } = await authService.registerProfileWithAvatar({
       email,
       username,
       password,
@@ -94,11 +101,12 @@ const registerStep1 = async (req, res, next) => {
       emergencyTelephone,
       allergies,
       medications,
+      avatarFile: req.file,
     });
 
     res.status(201).json({
       success: true,
-      message: 'Profile created. Proceed to step 2 to set preferences.',
+      message: 'Profile created with avatar. Proceed to step 2 to set preferences.',
       data: { profile, token },
     });
   } catch (err) {
