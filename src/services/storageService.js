@@ -4,6 +4,7 @@ const prisma = require('../config/db');
 const AVATARS_BUCKET = 'avatars';
 const SESSIONS_BUCKET = 'sessions';
 const BOOKING_SLIPS_BUCKET = 'booking-slips';
+const PHOTO_STORIES_BUCKET = 'photo-stories';
 
 /**
  * Upload an avatar file to Supabase Storage and save the public URL on the profile.
@@ -189,4 +190,70 @@ const uploadBookingSlip = async (bookingId, file) => {
   return slipUrl;
 };
 
-module.exports = { uploadAvatar, uploadSessionImage, uploadBookingSlip };
+/**
+ * Upload a photo story file to Supabase Storage and return the public URL.
+ */
+const uploadPhotoStory = async (userId, sessionId, file) => {
+  if (!file) {
+    const err = new Error('File is required');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const ext = file.originalname.split('.').pop().toLowerCase();
+  const timestamp = Date.now();
+  const path = `${userId}/${sessionId}/${timestamp}.${ext}`;
+
+  // Upload to photo-stories bucket
+  const { error: uploadError } = await supabase.storage
+    .from(PHOTO_STORIES_BUCKET)
+    .upload(path, file.buffer, {
+      contentType: file.mimetype,
+    });
+
+  if (uploadError) {
+    const err = new Error(`Storage upload failed: ${uploadError.message}`);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  // Get public URL
+  const { data } = supabase.storage.from(PHOTO_STORIES_BUCKET).getPublicUrl(path);
+  const photoUrl = data.publicUrl;
+
+  return photoUrl;
+};
+
+/**
+ * Delete a photo story file from Supabase Storage.
+ * Extracts the file path from the public URL and removes it.
+ */
+const deletePhotoStory = async (photoUrl) => {
+  if (!photoUrl) {
+    return; // No file to delete
+  }
+
+  try {
+    // Extract path from the public URL
+    // URL format: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+    const pathMatch = photoUrl.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/);
+    if (pathMatch && pathMatch[1]) {
+      const filePath = decodeURIComponent(pathMatch[1]);
+
+      // Delete file from storage
+      const { error: deleteError } = await supabase.storage
+        .from(PHOTO_STORIES_BUCKET)
+        .remove([filePath]);
+
+      if (deleteError) {
+        console.warn(`Failed to delete photo story: ${deleteError.message}`);
+      } else {
+        console.log(`Deleted photo story: ${filePath}`);
+      }
+    }
+  } catch (err) {
+    console.warn(`Error deleting photo story file: ${err.message}`);
+  }
+};
+
+module.exports = { uploadAvatar, uploadSessionImage, uploadBookingSlip, uploadPhotoStory, deletePhotoStory };

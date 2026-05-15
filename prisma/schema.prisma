@@ -69,6 +69,7 @@ model Profile {
   preferences Preferences? @relation("ProfilePreferences") // needs to be nullable to allow creating profile before preferences
 
   registrations Booking[]
+  photoStories  PhotoStory[]
   matchAsMale   Match?         @relation("MaleMatch") // needs to be nullable to allow creating profile before matching
   matchAsFemale Match?         @relation("FemaleMatch")
 
@@ -168,8 +169,25 @@ model Session {
   capacity       Int
   img_url_list   String[]  @map("img_url_list") // Maximum of 5 images per session
 
-  bookings Booking[]
-  matches  Match[]
+  bookings    Booking[]
+  matches     Match[]
+  photoStories PhotoStory[]
 
   @@map("sessions")
+}
+
+model PhotoStory {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId String  @map("user_id") @db.Uuid
+  user   Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionId String  @map("session_id") @db.Uuid
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  photoUrl String @map("photo_url") // Activity photo URL
+
+  @@unique([userId, sessionId])
+  @@map("photo_stories")
 }

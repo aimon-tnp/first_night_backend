@@ -10,6 +10,8 @@ const {
   getAllSessions,
 } = require("../controllers/sessionController");
 
+const { uploadPhotoStoryController } = require("../controllers/photoStoryController");
+
 const { protect, adminOnly } = require("../middleware/auth");
 const { upload } = require("../utils/upload");
 const bookingRoutes = require("./bookingRoutes");
@@ -273,6 +275,78 @@ router.post(
   adminOnly,
   upload.array("image", 5),
   uploadSessionImage,
+);
+
+/**
+ * @swagger
+ * /api/sessions/{sessionId}/photo-story:
+ *   post:
+ *     summary: Upload activity photo for a session
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [photo]
+ *             properties:
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Activity photo (image file)
+ *     responses:
+ *       200:
+ *         description: Photo uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     userId:
+ *                       type: string
+ *                       format: uuid
+ *                     sessionId:
+ *                       type: string
+ *                       format: uuid
+ *                     photoUrl:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: No file provided
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Session not found
+ *       500:
+ *         description: Storage or database error
+ */
+router.post(
+  "/:sessionId/photo-story",
+  protect,
+  upload.single("photo"),
+  uploadPhotoStoryController,
 );
 
 // Nested: /api/sessions/:sessionId/bookings
