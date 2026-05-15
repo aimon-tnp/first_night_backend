@@ -4,11 +4,11 @@ const prisma = require('../config/db');
 const WEIGHTS = {
   personality: 20,
   age: 25,
-  loveLanguage: 12,
-  hobbies: 13,
+  loveLanguage: 10,
+  hobbies: 10,
   fashionStyle: 10,
-  characteristics: 10,
-  faceType: 10,
+  characteristics: 12,
+  faceType: 13,
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────────
