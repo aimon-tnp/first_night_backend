@@ -229,6 +229,7 @@ const assignMatches = (costMatrix) => {
 
 /**
  * Batch match males and females for a session
+ * Progressive matching: strict age filter first, then relax for remaining unmatched
  * Returns array of match pairs: [{ male, female, score }]
  */
 const batchMatch = async (males, females) => {
@@ -243,12 +244,28 @@ const batchMatch = async (males, females) => {
 
   let assignment = assignMatches(costMatrix);
 
-  // If insufficient matches, relax age filter and retry
-  if (assignment.length < Math.min(males.length, females.length)) {
-    costMatrix = males.map(male =>
-      females.map(female => computeMatchScore(male, female, true))
+  // Identify unmatched males and females
+  const matchedMaleIndices = new Set(assignment.map(pair => pair[0]));
+  const matchedFemaleIndices = new Set(assignment.map(pair => pair[1]));
+  
+  const unmatchedMales = males.map((_, idx) => idx).filter(idx => !matchedMaleIndices.has(idx));
+  const unmatchedFemales = females.map((_, idx) => idx).filter(idx => !matchedFemaleIndices.has(idx));
+
+  // If there are unmatched people, retry with relaxed filter for remaining
+  if (unmatchedMales.length > 0 && unmatchedFemales.length > 0) {
+    const remainingCostMatrix = unmatchedMales.map(maleIdx =>
+      unmatchedFemales.map(femaleIdx => computeMatchScore(males[maleIdx], females[femaleIdx], true))
     );
-    assignment = assignMatches(costMatrix);
+
+    const remainingAssignment = assignMatches(remainingCostMatrix);
+
+    // Map back to original indices
+    const mappedRemainingAssignment = remainingAssignment.map(([localMaleIdx, localFemaleIdx]) => [
+      unmatchedMales[localMaleIdx],
+      unmatchedFemales[localFemaleIdx],
+    ]);
+
+    assignment = assignment.concat(mappedRemainingAssignment);
   }
 
   // Convert assignment to match objects with scores
