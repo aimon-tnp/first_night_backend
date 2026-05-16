@@ -53,24 +53,25 @@ const computePersonalityScore = (male, female) => {
 
   // Exact personality match
   if (male.preferences?.personality === female.preferences?.personality) {
-    score += 10; // 50% of personality weight
+    score += WEIGHTS.personality / 2; // 50% of personality weight
   }
 
   // Male matches female's personality preference
   if (male.preferences?.personality === female.preferences?.personalityPreference) {
-    score += 10;
+    score += WEIGHTS.personality / 2;
   }
 
   // Female matches male's personality preference
   if (female.preferences?.personality === male.preferences?.personalityPreference) {
-    score += 5; // Bonus but weighted less
+    score += WEIGHTS.personality / 2;
   }
 
-  return Math.min(score, 20); // Cap at weight
+  return Math.min(score, WEIGHTS.personality); // Cap at weight
 };
 
 /**
  * Calculate age score based on preferences
+ * Preferences: 'same' (±6 months), 'younger' (≥6 months younger), 'older' (≥6 months older), 'no_preference'
  * Hard filtering: check age preferences first
  * If preferences prevent matching, return 0 (will be filtered later)
  */
@@ -82,47 +83,42 @@ const computeAgeScore = (male, female, relax = false) => {
       (male.birthday.getMonth() - female.birthday.getMonth())
   );
 
-  // If not relaxing, apply hard filters
-  if (!relax) {
-    // Check male's age preference against female
-    const malePreference = male.preferences?.agePreference;
-    if (malePreference === 'same' && ageDiffMonths > 6) return 0;
-    if (malePreference === 'younger' && femaleAge >= maleAge) return 0;
-    if (malePreference === 'older' && femaleAge <= maleAge) return 0;
+  const malePreference = male.preferences?.agePreference || 'no_preference';
+  const femalePreference = female.preferences?.agePreference || 'no_preference';
 
-    // Check female's age preference against male
-    const femalePreference = female.preferences?.agePreference;
-    if (femalePreference === 'same' && ageDiffMonths > 6) return 0;
-    if (femalePreference === 'younger' && maleAge >= femaleAge) return 0;
-    if (femalePreference === 'older' && maleAge <= femaleAge) return 0;
-  }
-
-  // Score based on how well age matches both preferences
-  let score = 0;
-
-  // Within ±6 months = full points
-  if (ageDiffMonths <= 6) {
-    score = 25;
-  } else {
-    // Partial score based on preference alignment
-    const malePreference = male.preferences?.agePreference;
-    const femalePreference = female.preferences?.agePreference;
-
-    if (malePreference === 'same' || femalePreference === 'same') {
-      score = 15;
-    } else if (
-      (malePreference === 'younger' && femaleAge < maleAge) ||
-      (malePreference === 'older' && femaleAge > maleAge) ||
-      (femalePreference === 'younger' && maleAge < femaleAge) ||
-      (femalePreference === 'older' && maleAge > femaleAge)
-    ) {
-      score = 10;
-    } else {
-      score = 5;
+  // Check if age difference satisfies a preference
+  const satisfiesPreference = (preference, userAge, otherAge, diffMonths) => {
+    switch (preference) {
+      case 'no_preference':
+        return true;
+      case 'same':
+        return diffMonths <= 6;
+      case 'younger':
+        return otherAge < userAge && diffMonths >= 6;
+      case 'older':
+        return otherAge > userAge && diffMonths >= 6;
+      default:
+        return false;
     }
+  };
+
+  // Hard filter: both must satisfy preferences
+  if (!relax) {
+    if (!satisfiesPreference(malePreference, maleAge, femaleAge, ageDiffMonths)) return 0;
+    if (!satisfiesPreference(femalePreference, femaleAge, maleAge, ageDiffMonths)) return 0;
   }
 
-  return score;
+  // Score based on how many preferences are met
+  const malePreferenceMet = satisfiesPreference(malePreference, maleAge, femaleAge, ageDiffMonths);
+  const femalePreferenceMet = satisfiesPreference(femalePreference, femaleAge, maleAge, ageDiffMonths);
+
+  if (malePreferenceMet && femalePreferenceMet) {
+    return WEIGHTS.age; // Both preferences met
+  } else if (malePreferenceMet || femalePreferenceMet) {
+    return Math.round(WEIGHTS.age * 0.6); // One preference met
+  } else {
+    return Math.round(WEIGHTS.age * 0.2); // Neither preference met (only if relaxing)
+  }
 };
 
 /**
@@ -151,8 +147,8 @@ const computeLoveLanguageScore = (male, female) => {
     matches += 1;
   }
 
-  // Normalize to 0-12 scale
-  return (matches / 4) * 12;
+  // Normalize to 0-10 scale
+  return (matches / 4) * WEIGHTS.loveLanguage;
 };
 
 /**
@@ -164,9 +160,18 @@ const computeMatchScore = (male, female, relax = false) => {
     age: computeAgeScore(male, female, relax),
     loveLanguage: computeLoveLanguageScore(male, female),
     hobbies: jaccardScore(male.preferences?.hobbies, female.preferences?.hobbies) * WEIGHTS.hobbies,
-    fashionStyle: jaccardScore(male.preferences?.fashionStyle, female.preferences?.fashionPreference) * WEIGHTS.fashionStyle,
-    characteristics: jaccardScore(male.preferences?.characteristics, female.preferences?.characteristicPreference) * WEIGHTS.characteristics,
-    faceType: jaccardScore(male.preferences?.faceType, female.preferences?.faceTypePreference) * WEIGHTS.faceType,
+    fashionStyle: (
+      (jaccardScore(male.preferences?.fashionStyle, female.preferences?.fashionPreference) +
+       jaccardScore(female.preferences?.fashionStyle, male.preferences?.fashionPreference)) / 2
+    ) * WEIGHTS.fashionStyle,
+    characteristics: (
+      (jaccardScore(male.preferences?.characteristics, female.preferences?.characteristicPreference) +
+       jaccardScore(female.preferences?.characteristics, male.preferences?.characteristicPreference)) / 2
+    ) * WEIGHTS.characteristics,
+    faceType: (
+      (jaccardScore(male.preferences?.faceType, female.preferences?.faceTypePreference) +
+       jaccardScore(female.preferences?.faceType, male.preferences?.faceTypePreference)) / 2
+    ) * WEIGHTS.faceType,
   };
 
   // Hard filter: if age is 0 (preference mismatch), pair scores 0
